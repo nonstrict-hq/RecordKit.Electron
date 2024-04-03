@@ -1,0 +1,18 @@
+{
+  "entryPoints": [
+    "src/index.ts"
+  ],
+  "navigationLinks": {
+    "Back to the Homepage": "http://nonstrict.eu/recordkit"
+  },
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "sort": [
+    "source-order",
+    "kind",
+    "instance-first",
+    "alphabetical"
+  ],
+  "sortEntryPoints": false,
+}

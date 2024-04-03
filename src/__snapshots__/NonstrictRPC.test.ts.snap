@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NonstrictRPC initialize sends init request w/o parameters 1`] = `
+{
+  "id": Any<String>,
+  "nsrpc": 1,
+  "procedure": "init",
+  "target": "TheTarget",
+  "type": "TheType",
+}
+`;
+
+exports[`NonstrictRPC initialize sends init request w/parameters 1`] = `
+{
+  "id": Any<String>,
+  "nsrpc": 1,
+  "params": {
+    "aParameter": "TheValue",
+  },
+  "procedure": "init",
+  "target": "TheTarget",
+  "type": "TheType",
+}
+`;
