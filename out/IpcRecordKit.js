@@ -13,9 +13,11 @@ export class IpcRecordKit {
         }
         this.nsrpc.logMessages = logMessages;
         this.childProcess = await new Promise((resolve, reject) => {
-            const childProcess = spawn(recordKitRpcPath);
-            childProcess.on('spawn', () => { resolve(childProcess); });
+            const childProcess = spawn(recordKitRpcPath, { stdio: ['pipe', 'pipe', process.stderr] });
+            childProcess.on('close', (code, signal) => { console.log(`RecordKit RPC closed with code ${code} and signal ${signal}`); });
             childProcess.on('error', (error) => { reject(error); });
+            childProcess.on('exit', (code, signal) => { console.log(`RecordKit RPC exited with code ${code} and signal ${signal}`); });
+            childProcess.on('spawn', () => { resolve(childProcess); });
         });
         const { stdout } = this.childProcess;
         if (!stdout) {

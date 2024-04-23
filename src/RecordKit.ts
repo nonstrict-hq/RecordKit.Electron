@@ -39,8 +39,8 @@ export class RecordKit {
     let rpcBinaryPath = args.rpcBinaryPath
     if (args.fallbackToNodeModules ?? true) {
       if (!existsSync(rpcBinaryPath)) {
-        console.log('Falling back to RPC binary from node_modules, no file at given RPC binary path.')
         rpcBinaryPath = rpcBinaryPath.replace('node_modules/electron/dist/Electron.app/Contents/Resources', 'node_modules/@nonstrict/recordkit/bin')
+        console.log(`Falling back to RPC binary from node_modules at ${rpcBinaryPath}`)
       }
     }
 

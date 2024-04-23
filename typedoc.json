@@ -8,6 +8,7 @@
   "excludeExternals": true,
   "excludePrivate": true,
   "excludeProtected": true,
+  "disableSources": true,
   "sort": [
     "source-order",
     "kind",

@@ -210,9 +210,11 @@ class IpcRecordKit {
         }
         this.nsrpc.logMessages = logMessages;
         this.childProcess = await new Promise((resolve, reject) => {
-            const childProcess = node_child_process.spawn(recordKitRpcPath);
-            childProcess.on('spawn', () => { resolve(childProcess); });
+            const childProcess = node_child_process.spawn(recordKitRpcPath, { stdio: ['pipe', 'pipe', process.stderr] });
+            childProcess.on('close', (code, signal) => { console.log(`RecordKit RPC closed with code ${code} and signal ${signal}`); });
             childProcess.on('error', (error) => { reject(error); });
+            childProcess.on('exit', (code, signal) => { console.log(`RecordKit RPC exited with code ${code} and signal ${signal}`); });
+            childProcess.on('spawn', () => { resolve(childProcess); });
         });
         const { stdout } = this.childProcess;
         if (!stdout) {
@@ -316,8 +318,8 @@ class RecordKit {
         let rpcBinaryPath = args.rpcBinaryPath;
         if (args.fallbackToNodeModules ?? true) {
             if (!node_fs.existsSync(rpcBinaryPath)) {
-                console.log('Falling back to RPC binary from node_modules, no file at given RPC binary path.');
                 rpcBinaryPath = rpcBinaryPath.replace('node_modules/electron/dist/Electron.app/Contents/Resources', 'node_modules/@nonstrict/recordkit/bin');
+                console.log(`Falling back to RPC binary from node_modules at ${rpcBinaryPath}`);
             }
         }
         return this.ipcRecordKit.initialize(rpcBinaryPath, args.logRpcMessages);

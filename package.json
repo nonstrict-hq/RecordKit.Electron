@@ -1,7 +1,9 @@
 {
   "name": "@nonstrict/recordkit",
-  "version": "0.3.2-alpha.7",
+  "version": "0.3.2",
   "description": "Powerful screen recording for your Electron app on macOS.",
+  "homepage": "https://nonstrict.eu/recordkit",
+  "repository": "nonstrict-hq/RecordKit.Electron",
   "type": "module",
   "main": "out/index.js",
   "types": "out/index.d.ts",
@@ -30,7 +32,7 @@
   "author": {
     "name": "Nonstrict B.V.",
     "email": "team+recordkit@nonstrict.com",
-    "url": "https://nonstrict.eu/recordkit"
+    "url": "https://nonstrict.eu/"
   },
   "license": "SEE LICENSE IN License.md",
   "devDependencies": {
