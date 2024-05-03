@@ -160,7 +160,15 @@ export interface Camera {
   name: string;
   model_id: string;
   manufacturer: string;
-  availability: 'available' | 'lidClosed' | 'unknownSuspended'
+  availability: 'available' | 'lidClosed' | 'unknownSuspended',
+
+  /**
+   * This URL can be used in a `img` tag to display a live preview of the camera feed in your user interface.
+   * 
+   * @remarks
+   * The preview URL should be available for every camera under normal conditions. If you observe a camera without a preview URL please report it as a bug.
+   */
+  preview_url?: string;
 }
 
 /**
