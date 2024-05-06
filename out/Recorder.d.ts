@@ -27,7 +27,7 @@ export interface RecorderSchema {
 /**
  * @group Recording
  */
-export type RecorderSchemaItem = WebcamSchema | WindowBasedCropSchema | iPhonePortraitSchema;
+export type RecorderSchemaItem = WebcamSchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema;
 /**
  * @group Recording Schemas
  */
@@ -50,8 +50,8 @@ export interface WindowBasedCropSchema {
 /**
  * @group Recording Schemas
  */
-export interface iPhonePortraitSchema {
-    type: 'iPhonePortrait';
+export interface AppleDeviceStaticOrientationSchema {
+    type: 'appleDeviceStaticOrientation';
     filename?: string;
     device: AppleDevice | string;
 }

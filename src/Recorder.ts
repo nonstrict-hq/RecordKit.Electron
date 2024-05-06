@@ -30,7 +30,7 @@ export class Recorder extends EventEmitter {
           item.window = item.window.id
         }
       }
-      if (item.type == 'iPhonePortrait') {
+      if (item.type == 'appleDeviceStaticOrientation') {
         if (typeof item.device != 'string') {
           item.device = item.device.id
         }
@@ -88,7 +88,7 @@ export interface RecorderSchema {
 export type RecorderSchemaItem =
   | WebcamSchema
   | WindowBasedCropSchema
-  | iPhonePortraitSchema
+  | AppleDeviceStaticOrientationSchema
 
 /**
  * @group Recording Schemas
@@ -114,8 +114,8 @@ export interface WindowBasedCropSchema {
 /**
  * @group Recording Schemas
  */
-export interface iPhonePortraitSchema {
-  type: 'iPhonePortrait'
+export interface AppleDeviceStaticOrientationSchema {
+  type: 'appleDeviceStaticOrientation'
   filename?: string
   device: AppleDevice | string
 }

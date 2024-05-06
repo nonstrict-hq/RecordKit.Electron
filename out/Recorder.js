@@ -24,7 +24,7 @@ export class Recorder extends EventEmitter {
                     item.window = item.window.id;
                 }
             }
-            if (item.type == 'iPhonePortrait') {
+            if (item.type == 'appleDeviceStaticOrientation') {
                 if (typeof item.device != 'string') {
                     item.device = item.device.id;
                 }
