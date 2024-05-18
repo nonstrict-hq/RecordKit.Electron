@@ -16,4 +16,5 @@
     "alphabetical"
   ],
   "sortEntryPoints": false,
+  "sitemapBaseUrl": "http://nonstrict.eu/recordkit/api/electron/",
 }
