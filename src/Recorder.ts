@@ -109,6 +109,7 @@ export interface WindowBasedCropSchema {
   window: Window | number // UInt32
   shows_cursor?: boolean
   mouse_events?: boolean
+  keyboard_events?: boolean
 }
 
 /**

@@ -46,6 +46,7 @@ export interface WindowBasedCropSchema {
     window: Window | number;
     shows_cursor?: boolean;
     mouse_events?: boolean;
+    keyboard_events?: boolean;
 }
 /**
  * @group Recording Schemas
