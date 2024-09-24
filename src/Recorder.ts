@@ -12,7 +12,13 @@ export class Recorder extends EventEmitter {
   private readonly target: string;
 
   /** @ignore */
-  static async newInstance(rpc: NSRPC, schema: RecorderSchema): Promise<Recorder> {
+  static async newInstance(rpc: NSRPC, schema: {
+    output_directory?: string
+    items: RecorderSchemaItem[]
+    settings?: {
+      allowFrameReordering?: boolean
+    }
+  }): Promise<Recorder> {
     const target = 'Recorder_' + randomUUID();
     const object = new Recorder(rpc, target);
 
@@ -72,14 +78,6 @@ export class Recorder extends EventEmitter {
   async stop(): Promise<RecordingResult> {
     return await this.rpc.perform({ target: this.target, action: 'stop' }) as RecordingResult;
   }
-}
-
-/**
- * @group Recording
- */
-export interface RecorderSchema {
-  output_directory?: string
-  items: RecorderSchemaItem[]
 }
 
 /**

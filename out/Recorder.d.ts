@@ -10,19 +10,18 @@ export declare class Recorder extends EventEmitter {
     private readonly rpc;
     private readonly target;
     /** @ignore */
-    static newInstance(rpc: NSRPC, schema: RecorderSchema): Promise<Recorder>;
+    static newInstance(rpc: NSRPC, schema: {
+        output_directory?: string;
+        items: RecorderSchemaItem[];
+        settings?: {
+            allowFrameReordering?: boolean;
+        };
+    }): Promise<Recorder>;
     /** @ignore */
     constructor(rpc: NSRPC, target: string);
     prepare(): Promise<void>;
     start(): Promise<void>;
     stop(): Promise<RecordingResult>;
-}
-/**
- * @group Recording
- */
-export interface RecorderSchema {
-    output_directory?: string;
-    items: RecorderSchemaItem[];
 }
 /**
  * @group Recording

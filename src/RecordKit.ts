@@ -1,5 +1,5 @@
 import { IpcRecordKit } from "./IpcRecordKit.js";
-import { Recorder, RecorderSchema } from "./Recorder.js";
+import { Recorder, RecorderSchemaItem } from "./Recorder.js";
 import { existsSync } from "node:fs";
 
 /** 
@@ -117,7 +117,14 @@ export class RecordKit {
     return await this.ipcRecordKit.nsrpc.perform({ type: 'AuthorizationStatus', action: 'requestScreenRecordingAccess' }) as void
   }
 
-  async createRecorder(schema: RecorderSchema): Promise<Recorder> {
+  async createRecorder(
+    schema: {
+      output_directory?: string
+      items: RecorderSchemaItem[]
+      settings?: {
+        allowFrameReordering?: boolean
+      }
+    }): Promise<Recorder> {
     return Recorder.newInstance(this.ipcRecordKit.nsrpc, schema);
   }
 }
@@ -149,7 +156,7 @@ export interface AppleDevice {
   id: string;
   name: string;
   model_id?: string;
-  availability: 'available'
+  availability: 'available' | 'notPaired' | 'notConnected' | 'pairedNeedsConnect' | 'pairedNeedsReconnect'
 }
 
 /**
@@ -160,7 +167,7 @@ export interface Camera {
   name: string;
   model_id: string;
   manufacturer: string;
-  availability: 'available' | 'lidClosed' | 'unknownSuspended',
+  availability: 'available' | 'lidClosed' | 'unknownSuspended'
 
   /**
    * This URL can be used in a `img` tag to display a live preview of the camera feed in your user interface.
@@ -179,7 +186,7 @@ export interface Microphone {
   name: string;
   model_id: string;
   manufacturer: string;
-  availability: 'available' | 'lidClosed' | 'unknownSuspended'
+  availability: 'available' | 'lidClosed' | 'unknownSuspended' | 'notConnected'
 }
 
 /**

@@ -1,4 +1,4 @@
-import { Recorder, RecorderSchema } from "./Recorder.js";
+import { Recorder, RecorderSchemaItem } from "./Recorder.js";
 /**
  * Entry point for the RecordKit SDK, an instance is available as `recordkit` that can be imported from the module. Do not instantiate this class directly.
  *
@@ -71,7 +71,13 @@ export declare class RecordKit {
      * @group Permissions
      */
     requestScreenRecordingAccess(): Promise<void>;
-    createRecorder(schema: RecorderSchema): Promise<Recorder>;
+    createRecorder(schema: {
+        output_directory?: string;
+        items: RecorderSchemaItem[];
+        settings?: {
+            allowFrameReordering?: boolean;
+        };
+    }): Promise<Recorder>;
 }
 /** @ignore */
 export declare let recordkit: RecordKit;
@@ -94,7 +100,7 @@ export interface AppleDevice {
     id: string;
     name: string;
     model_id?: string;
-    availability: 'available';
+    availability: 'available' | 'notPaired' | 'notConnected' | 'pairedNeedsConnect' | 'pairedNeedsReconnect';
 }
 /**
  * @group Discovery
@@ -121,7 +127,7 @@ export interface Microphone {
     name: string;
     model_id: string;
     manufacturer: string;
-    availability: 'available' | 'lidClosed' | 'unknownSuspended';
+    availability: 'available' | 'lidClosed' | 'unknownSuspended' | 'notConnected';
 }
 /**
  * @group Discovery
