@@ -187,6 +187,12 @@ class NSRPC {
             target,
         });
     }
+    async manualRelease(target) {
+        await this.sendRequest({
+            procedure: "manual-release",
+            target,
+        });
+    }
     /* Register locally available targets/actions */
     registerClosure(options) {
         const target = `target_${options.prefix}_${crypto.randomUUID()}`;
@@ -291,6 +297,9 @@ class Recorder extends stream.EventEmitter {
     }
     async stop() {
         return await this.rpc.perform({ target: this.target, action: 'stop' });
+    }
+    async cancel() {
+        await this.rpc.manualRelease(this.target);
     }
 }
 

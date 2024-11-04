@@ -59,5 +59,8 @@ export class Recorder extends EventEmitter {
     async stop() {
         return await this.rpc.perform({ target: this.target, action: 'stop' });
     }
+    async cancel() {
+        await this.rpc.manualRelease(this.target);
+    }
 }
 //# sourceMappingURL=Recorder.js.map

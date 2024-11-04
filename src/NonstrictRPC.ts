@@ -50,7 +50,7 @@ export interface NSRPCPerformClosureRequest {
 interface NSRPCReleaseRequest {
   nsrpc: number;
   id: string;
-  procedure: "release";
+  procedure: "release" | "manual-release";
   target: string;
 }
 
@@ -301,6 +301,13 @@ export class NSRPC {
   private async release(target: string) {
     await this.sendRequest({
       procedure: "release",
+      target,
+    });
+  }
+
+  async manualRelease(target: string) {
+    await this.sendRequest({
+      procedure: "manual-release",
       target,
     });
   }

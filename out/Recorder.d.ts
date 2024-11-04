@@ -22,6 +22,7 @@ export declare class Recorder extends EventEmitter {
     prepare(): Promise<void>;
     start(): Promise<void>;
     stop(): Promise<RecordingResult>;
+    cancel(): Promise<void>;
 }
 /**
  * @group Recording

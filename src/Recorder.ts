@@ -1,5 +1,4 @@
 import { randomUUID } from "crypto";
-import { finalizationRegistry } from "./finalizationRegistry.js";
 import { NSRPC } from "./NonstrictRPC.js";
 import { EventEmitter } from "stream";
 import { AppleDevice, Camera, Microphone, Window } from "./RecordKit.js";
@@ -67,16 +66,20 @@ export class Recorder extends EventEmitter {
     this.target = target;
   }
 
-  async prepare(): Promise<void> {
+  async prepare() {
     await this.rpc.perform({ target: this.target, action: 'prepare' });
   }
 
-  async start(): Promise<void> {
+  async start() {
     await this.rpc.perform({ target: this.target, action: 'start' });
   }
 
   async stop(): Promise<RecordingResult> {
     return await this.rpc.perform({ target: this.target, action: 'stop' }) as RecordingResult;
+  }
+
+  async cancel() {
+    await this.rpc.manualRelease(this.target)
   }
 }
 

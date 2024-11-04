@@ -31,6 +31,7 @@ export declare class NSRPC {
         params?: Record<string, unknown>;
     }): Promise<unknown>;
     private release;
+    manualRelease(target: string): Promise<void>;
     registerClosure(options: {
         handler: ClosureTarget;
         lifecycle: Object;

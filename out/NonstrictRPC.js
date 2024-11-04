@@ -160,6 +160,12 @@ export class NSRPC {
             target,
         });
     }
+    async manualRelease(target) {
+        await this.sendRequest({
+            procedure: "manual-release",
+            target,
+        });
+    }
     /* Register locally available targets/actions */
     registerClosure(options) {
         const target = `target_${options.prefix}_${randomUUID()}`;
