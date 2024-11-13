@@ -42,13 +42,13 @@ class NSRPC {
         let message;
         try {
             if (this.logMessages) {
-                console.log("< ", data.trimEnd());
+                console.log("RecordKit: [RPC] <", data.trimEnd());
             }
             message = JSON.parse(data);
         }
         catch (error) {
             if (this.logMessages) {
-                console.log("!! Above message is invalid JSON, will be ignored.");
+                console.error("RecordKit: [RPC] !! Above message is invalid JSON, will be ignored.");
             }
             return;
         }
@@ -57,7 +57,7 @@ class NSRPC {
             const responseHandler = this.responseHandlers.get(message.id);
             this.responseHandlers.delete(message.id);
             if (responseHandler === undefined) {
-                // TODO: Got a response for a request we don't know about, log this
+                console.error("RecordKit: [RPC] !! Got a response for an unknown request.", message.id);
                 return;
             }
             if ("error" in message) {
@@ -79,7 +79,7 @@ class NSRPC {
     sendMessage(message) {
         const stringMessage = JSON.stringify(message);
         if (this.logMessages) {
-            console.log("> ", stringMessage);
+            console.log("RecordKit: [RPC] >", stringMessage);
         }
         this.send(stringMessage);
     }
@@ -212,28 +212,33 @@ class IpcRecordKit {
     }
     async initialize(recordKitRpcPath, logMessages = false) {
         if (this.childProcess !== undefined) {
-            throw new Error('RecordKit RPC: Already initialized.');
+            throw new Error('RecordKit: [RPC] Already initialized.');
         }
         this.nsrpc.logMessages = logMessages;
         this.childProcess = await new Promise((resolve, reject) => {
-            const childProcess = node_child_process.spawn(recordKitRpcPath, { stdio: ['pipe', 'pipe', process.stderr] });
-            childProcess.on('close', (code, signal) => { console.log(`RecordKit RPC: Closed with code ${code} and signal ${signal}`); });
+            const childProcess = node_child_process.spawn(recordKitRpcPath, { stdio: ['pipe', 'pipe', logMessages ? 'pipe' : 'ignore'] });
+            childProcess.on('close', (code, signal) => { console.error(`RecordKit: [RPC] Closed with code ${code} and signal ${signal}`); });
             childProcess.on('error', (error) => { reject(error); });
-            childProcess.on('exit', (code, signal) => { console.log(`RecordKit RPC: Exited with code ${code} and signal ${signal}`); });
+            childProcess.on('exit', (code, signal) => { console.error(`RecordKit: [RPC] Exited with code ${code} and signal ${signal}`); });
             childProcess.on('spawn', () => { resolve(childProcess); });
         });
-        const { stdout } = this.childProcess;
+        const { stdout, stderr } = this.childProcess;
         if (!stdout) {
-            throw new Error('RecordKit RPC: No stdout stream on child process.');
+            throw new Error('RecordKit: [RPC] !! No stdout stream on child process.');
         }
         readline__namespace.createInterface({ input: stdout }).on('line', (line) => {
             this.nsrpc.receive(line);
         });
+        if (stderr) {
+            readline__namespace.createInterface({ input: stderr }).on('line', (line) => {
+                console.log(`RecordKit: [RPC] Lognoise on stderr: ${line}`);
+            });
+        }
     }
     write(message) {
         const stdin = this.childProcess?.stdin;
         if (!stdin) {
-            throw new Error('RecordKit RPC: Missing stdin stream.');
+            throw new Error('RecordKit: [RPC] !! Missing stdin stream.');
         }
         stdin.write(message + "\n");
     }
@@ -311,6 +316,9 @@ class Recorder extends stream.EventEmitter {
  *
  * @groupDescription Permissions
  * Check and request the apps permission to access the recording devices.
+ *
+ * @groupDescription Logging
+ * Log what's going on to the console for easy debugging and troubleshooting.
  */
 class RecordKit {
     ipcRecordKit = new IpcRecordKit();
@@ -328,10 +336,29 @@ class RecordKit {
         if (args.fallbackToNodeModules ?? true) {
             if (!node_fs.existsSync(rpcBinaryPath)) {
                 rpcBinaryPath = rpcBinaryPath.replace('node_modules/electron/dist/Electron.app/Contents/Resources', 'node_modules/@nonstrict/recordkit/bin');
-                console.log(`Falling back to RPC binary from node_modules at ${rpcBinaryPath}`);
+                console.error(`RecordKit: [RPC] !! Falling back to RPC binary from node_modules at ${rpcBinaryPath}`);
             }
         }
-        return this.ipcRecordKit.initialize(rpcBinaryPath, args.logRpcMessages);
+        await this.ipcRecordKit.initialize(rpcBinaryPath, args.logRpcMessages);
+        const logHandlerInstance = this.ipcRecordKit.nsrpc.registerClosure({
+            handler: (params) => { console.log('RecordKit:', params.formattedMessage); },
+            prefix: 'RecordKit.logHandler',
+            lifecycle: this
+        });
+        await this.ipcRecordKit.nsrpc.perform({ type: 'Logger', action: 'setLogHandler', params: { logHandlerInstance } });
+        if (args.logLevel) {
+            await this.setLogLevel(args.logLevel);
+        }
+    }
+    /**
+     * Set the global log level. Defaults to `debug`.
+     *
+     * Messages with a lower level than this will be ignored and not passed to any log handlers.
+     *
+     * @group Logging
+     */
+    async setLogLevel(logLevel) {
+        await this.ipcRecordKit.nsrpc.perform({ type: 'Logger', action: 'setLogLevel', params: { logLevel } });
     }
     /**
      * @group Discovery

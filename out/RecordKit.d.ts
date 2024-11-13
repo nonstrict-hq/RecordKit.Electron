@@ -7,6 +7,9 @@ import { Recorder, RecorderSchemaItem } from "./Recorder.js";
  *
  * @groupDescription Permissions
  * Check and request the apps permission to access the recording devices.
+ *
+ * @groupDescription Logging
+ * Log what's going on to the console for easy debugging and troubleshooting.
  */
 export declare class RecordKit {
     private ipcRecordKit;
@@ -28,9 +31,23 @@ export declare class RecordKit {
          * Whether to fallback to the RPC binary from `node_modules` if the given path does not exist. When enabled an extra check to see if the given path exists is performed. Most of the time this should be set to `!app.isPackaged`.
          */
         fallbackToNodeModules?: boolean;
+        /**
+         * Set the global log level. Defaults to `debug`.
+         *
+         * This is the same as calling `setLogLevel` right after initialization.
+         */
+        logLevel?: LogLevel;
         /** @ignore */
         logRpcMessages?: boolean;
     }): Promise<void>;
+    /**
+     * Set the global log level. Defaults to `debug`.
+     *
+     * Messages with a lower level than this will be ignored and not passed to any log handlers.
+     *
+     * @group Logging
+     */
+    setLogLevel(logLevel: LogLevel): Promise<void>;
     /**
      * @group Discovery
      */
@@ -149,3 +166,7 @@ export interface Bounds {
     width: number;
     height: number;
 }
+/**
+ * @group Logging
+ */
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warning' | 'error' | 'critical';

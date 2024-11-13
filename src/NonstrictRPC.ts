@@ -128,12 +128,12 @@ export class NSRPC {
     let message: NSRPCMessage
     try {
       if (this.logMessages) {
-        console.log("< ", data.trimEnd());
+        console.log("RecordKit: [RPC] <", data.trimEnd());
       }
       message = JSON.parse(data) as NSRPCMessage;
     } catch (error) {
       if (this.logMessages) {
-        console.log("!! Above message is invalid JSON, will be ignored.");
+        console.error("RecordKit: [RPC] !! Above message is invalid JSON, will be ignored.");
       }
       return;
     }
@@ -143,7 +143,7 @@ export class NSRPC {
       const responseHandler = this.responseHandlers.get(message.id);
       this.responseHandlers.delete(message.id);
       if (responseHandler === undefined) {
-        // TODO: Got a response for a request we don't know about, log this
+        console.error("RecordKit: [RPC] !! Got a response for an unknown request.", message.id);
         return;
       }
 
@@ -166,7 +166,7 @@ export class NSRPC {
   private sendMessage(message: NSRPCMessage) {
     const stringMessage = JSON.stringify(message)
     if (this.logMessages) {
-      console.log("> ", stringMessage);
+      console.log("RecordKit: [RPC] >", stringMessage);
     }
     this.send(stringMessage);
   }
