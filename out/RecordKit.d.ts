@@ -49,6 +49,17 @@ export declare class RecordKit {
      */
     setLogLevel(logLevel: LogLevel): Promise<void>;
     /**
+     * Overrides the global log level for a specific category. Defaults to the global log level.
+     *
+     * Messages in the given category with a lower level than this will be ignored and not passed to any log handlers.
+     *
+     * @group Logging
+     */
+    setCategoryLogLevel(params: {
+        category: string;
+        logLevel?: LogLevel;
+    }): Promise<void>;
+    /**
      * @group Discovery
      */
     getWindows(): Promise<Window[]>;
