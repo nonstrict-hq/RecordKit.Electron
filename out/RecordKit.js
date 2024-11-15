@@ -66,6 +66,12 @@ export class RecordKit {
     /**
      * @group Discovery
      */
+    async getDisplays() {
+        return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getDisplays' });
+    }
+    /**
+     * @group Discovery
+     */
     async getWindows() {
         return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getWindows' });
     }

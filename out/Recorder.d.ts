@@ -2,7 +2,7 @@
 /// <reference types="node" resolution-mode="require"/>
 import { NSRPC } from "./NonstrictRPC.js";
 import { EventEmitter } from "stream";
-import { AppleDevice, Camera, Microphone, Window } from "./RecordKit.js";
+import { AppleDevice, Camera, Display, Microphone, Window } from "./RecordKit.js";
 /**
  * @group Recording
  */
@@ -27,7 +27,7 @@ export declare class Recorder extends EventEmitter {
 /**
  * @group Recording
  */
-export type RecorderSchemaItem = WebcamSchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema;
+export type RecorderSchemaItem = WebcamSchema | DisplaySchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema;
 /**
  * @group Recording Schemas
  */
@@ -40,13 +40,50 @@ export interface WebcamSchema {
 /**
  * @group Recording Schemas
  */
-export interface WindowBasedCropSchema {
-    type: 'windowBasedCrop';
+export type DisplaySchema = DisplaySingleFile | DisplaySegmented;
+interface DisplaySingleFile {
+    type: 'display';
+    display: Display | number;
+    shows_cursor?: boolean;
+    mouse_events?: boolean;
+    keyboard_events?: boolean;
+    include_audio?: boolean;
+    output?: 'singleFile';
     filename?: string;
+}
+interface DisplaySegmented {
+    type: 'display';
+    display: Display | number;
+    shows_cursor?: boolean;
+    mouse_events?: boolean;
+    keyboard_events?: boolean;
+    include_audio?: boolean;
+    output: 'segmented';
+    filenamePrefix?: string;
+    segmentCallback?: (url: string) => void;
+}
+/**
+ * @group Recording Schemas
+ */
+export type WindowBasedCropSchema = WindowBasedCropSchemaSingleFile | WindowBasedCropSchemaSegmented;
+interface WindowBasedCropSchemaSingleFile {
+    type: 'windowBasedCrop';
     window: Window | number;
     shows_cursor?: boolean;
     mouse_events?: boolean;
     keyboard_events?: boolean;
+    output?: 'singleFile';
+    filename?: string;
+}
+interface WindowBasedCropSchemaSegmented {
+    type: 'windowBasedCrop';
+    window: Window | number;
+    shows_cursor?: boolean;
+    mouse_events?: boolean;
+    keyboard_events?: boolean;
+    output: 'segmented';
+    filenamePrefix?: string;
+    segmentCallback?: (url: string) => void;
 }
 /**
  * @group Recording Schemas
@@ -92,3 +129,4 @@ export interface BundleInfo {
         filename: string;
     }[];
 }
+export {};

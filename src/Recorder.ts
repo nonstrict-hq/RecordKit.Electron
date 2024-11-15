@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { NSRPC } from "./NonstrictRPC.js";
 import { EventEmitter } from "stream";
-import { AppleDevice, Camera, Microphone, Window } from "./RecordKit.js";
+import { AppleDevice, Camera, Display, Microphone, Window } from "./RecordKit.js";
 
 /**
  * @group Recording
@@ -30,9 +30,30 @@ export class Recorder extends EventEmitter {
           item.microphone = item.microphone.id
         }
       }
+      if (item.type == 'display') {
+        if (typeof item.display != 'number') {
+          item.display = item.display.id
+        }
+        if (item.output == 'segmented' && item.segmentCallback) {
+          const segmentHandler = item.segmentCallback;
+          (item as any).segmentCallback = rpc.registerClosure({
+            handler: (params) => { segmentHandler(params.path as string) },
+            prefix: 'Display.onSegment',
+            lifecycle: object
+          });
+        }
+      }
       if (item.type == 'windowBasedCrop') {
         if (typeof item.window != 'number') {
           item.window = item.window.id
+        }
+        if (item.output == 'segmented' && item.segmentCallback) {
+          const segmentHandler = item.segmentCallback;
+          (item as any).segmentCallback = rpc.registerClosure({
+            handler: (params) => { segmentHandler(params.path as string) },
+            prefix: 'Window.onSegment',
+            lifecycle: object
+          });
         }
       }
       if (item.type == 'appleDeviceStaticOrientation') {
@@ -88,6 +109,7 @@ export class Recorder extends EventEmitter {
  */
 export type RecorderSchemaItem =
   | WebcamSchema
+  | DisplaySchema
   | WindowBasedCropSchema
   | AppleDeviceStaticOrientationSchema
 
@@ -104,13 +126,55 @@ export interface WebcamSchema {
 /**
  * @group Recording Schemas
  */
-export interface WindowBasedCropSchema {
-  type: 'windowBasedCrop'
+export type DisplaySchema = DisplaySingleFile | DisplaySegmented
+
+interface DisplaySingleFile {
+  type: 'display'
+  display: Display | number // UInt32
+  shows_cursor?: boolean
+  mouse_events?: boolean
+  keyboard_events?: boolean
+  include_audio?: boolean
+  output?: 'singleFile'
   filename?: string
+}
+
+interface DisplaySegmented {
+  type: 'display'
+  display: Display | number // UInt32
+  shows_cursor?: boolean
+  mouse_events?: boolean
+  keyboard_events?: boolean
+  include_audio?: boolean
+  output: 'segmented'
+  filenamePrefix?: string
+  segmentCallback?: (url: string) => void
+}
+
+/**
+ * @group Recording Schemas
+ */
+export type WindowBasedCropSchema = WindowBasedCropSchemaSingleFile | WindowBasedCropSchemaSegmented
+
+interface WindowBasedCropSchemaSingleFile {
+  type: 'windowBasedCrop'
   window: Window | number // UInt32
   shows_cursor?: boolean
   mouse_events?: boolean
   keyboard_events?: boolean
+  output?: 'singleFile'
+  filename?: string
+}
+
+interface WindowBasedCropSchemaSegmented {
+  type: 'windowBasedCrop'
+  window: Window | number // UInt32
+  shows_cursor?: boolean
+  mouse_events?: boolean
+  keyboard_events?: boolean
+  output: 'segmented'
+  filenamePrefix?: string
+  segmentCallback?: (url: string) => void
 }
 
 /**

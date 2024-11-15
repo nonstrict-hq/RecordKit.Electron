@@ -62,6 +62,10 @@ export declare class RecordKit {
     /**
      * @group Discovery
      */
+    getDisplays(): Promise<Display[]>;
+    /**
+     * @group Discovery
+     */
     getWindows(): Promise<Window[]>;
     /**
      * @group Discovery
@@ -156,6 +160,15 @@ export interface Microphone {
     model_id: string;
     manufacturer: string;
     availability: 'available' | 'lidClosed' | 'unknownSuspended' | 'notConnected';
+}
+/**
+ * @group Discovery
+ */
+export interface Display {
+    id: number;
+    localizedName?: string;
+    frame: Bounds;
+    isMain: boolean;
 }
 /**
  * @group Discovery

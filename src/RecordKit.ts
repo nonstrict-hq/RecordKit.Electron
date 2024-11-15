@@ -92,6 +92,13 @@ export class RecordKit {
   /**
    * @group Discovery
    */
+  async getDisplays(): Promise<Display[]> {
+    return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getDisplays' }) as Display[]
+  }
+
+  /**
+   * @group Discovery
+   */
   async getWindows(): Promise<Window[]> {
     return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getWindows' }) as Window[]
   }
@@ -229,6 +236,16 @@ export interface Microphone {
   model_id: string;
   manufacturer: string;
   availability: 'available' | 'lidClosed' | 'unknownSuspended' | 'notConnected'
+}
+
+/**
+ * @group Discovery
+ */
+export interface Display {
+  id: number; // UInt32
+  localizedName?: string;
+  frame: Bounds
+  isMain: boolean
 }
 
 /**

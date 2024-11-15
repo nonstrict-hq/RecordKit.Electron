@@ -19,9 +19,30 @@ export class Recorder extends EventEmitter {
                     item.microphone = item.microphone.id;
                 }
             }
+            if (item.type == 'display') {
+                if (typeof item.display != 'number') {
+                    item.display = item.display.id;
+                }
+                if (item.output == 'segmented' && item.segmentCallback) {
+                    const segmentHandler = item.segmentCallback;
+                    item.segmentCallback = rpc.registerClosure({
+                        handler: (params) => { segmentHandler(params.path); },
+                        prefix: 'Display.onSegment',
+                        lifecycle: object
+                    });
+                }
+            }
             if (item.type == 'windowBasedCrop') {
                 if (typeof item.window != 'number') {
                     item.window = item.window.id;
+                }
+                if (item.output == 'segmented' && item.segmentCallback) {
+                    const segmentHandler = item.segmentCallback;
+                    item.segmentCallback = rpc.registerClosure({
+                        handler: (params) => { segmentHandler(params.path); },
+                        prefix: 'Window.onSegment',
+                        lifecycle: object
+                    });
                 }
             }
             if (item.type == 'appleDeviceStaticOrientation') {
