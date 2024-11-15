@@ -40,8 +40,7 @@ export interface WebcamSchema {
 /**
  * @group Recording Schemas
  */
-export type DisplaySchema = DisplaySingleFile | DisplaySegmented;
-interface DisplaySingleFile {
+export type DisplaySchema = {
     type: 'display';
     display: Display | number;
     shows_cursor?: boolean;
@@ -50,8 +49,7 @@ interface DisplaySingleFile {
     include_audio?: boolean;
     output?: 'singleFile';
     filename?: string;
-}
-interface DisplaySegmented {
+} | {
     type: 'display';
     display: Display | number;
     shows_cursor?: boolean;
@@ -61,12 +59,11 @@ interface DisplaySegmented {
     output: 'segmented';
     filenamePrefix?: string;
     segmentCallback?: (url: string) => void;
-}
+};
 /**
  * @group Recording Schemas
  */
-export type WindowBasedCropSchema = WindowBasedCropSchemaSingleFile | WindowBasedCropSchemaSegmented;
-interface WindowBasedCropSchemaSingleFile {
+export type WindowBasedCropSchema = {
     type: 'windowBasedCrop';
     window: Window | number;
     shows_cursor?: boolean;
@@ -74,8 +71,7 @@ interface WindowBasedCropSchemaSingleFile {
     keyboard_events?: boolean;
     output?: 'singleFile';
     filename?: string;
-}
-interface WindowBasedCropSchemaSegmented {
+} | {
     type: 'windowBasedCrop';
     window: Window | number;
     shows_cursor?: boolean;
@@ -84,7 +80,7 @@ interface WindowBasedCropSchemaSegmented {
     output: 'segmented';
     filenamePrefix?: string;
     segmentCallback?: (url: string) => void;
-}
+};
 /**
  * @group Recording Schemas
  */
@@ -129,4 +125,3 @@ export interface BundleInfo {
         filename: string;
     }[];
 }
-export {};
