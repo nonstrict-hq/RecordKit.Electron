@@ -1,4 +1,7 @@
+/// <reference types="node" resolution-mode="require"/>
+/// <reference types="node" resolution-mode="require"/>
 import { Recorder, RecorderSchemaItem } from "./Recorder.js";
+import { EventEmitter } from "stream";
 /**
  * Entry point for the RecordKit SDK, an instance is available as `recordkit` that can be imported from the module. Do not instantiate this class directly.
  *
@@ -11,7 +14,7 @@ import { Recorder, RecorderSchemaItem } from "./Recorder.js";
  * @groupDescription Logging
  * Log what's going on to the console for easy debugging and troubleshooting.
  */
-export declare class RecordKit {
+export declare class RecordKit extends EventEmitter {
     private ipcRecordKit;
     /** @ignore */
     constructor();

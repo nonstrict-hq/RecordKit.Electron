@@ -341,10 +341,12 @@ class Recorder extends stream.EventEmitter {
  * @groupDescription Logging
  * Log what's going on to the console for easy debugging and troubleshooting.
  */
-class RecordKit {
+class RecordKit extends stream.EventEmitter {
     ipcRecordKit = new IpcRecordKit();
     /** @ignore */
-    constructor() { }
+    constructor() {
+        super();
+    }
     /**
      * Initialize the RecordKit SDK.
      *
@@ -362,7 +364,10 @@ class RecordKit {
         }
         await this.ipcRecordKit.initialize(rpcBinaryPath, args.logRpcMessages);
         const logHandlerInstance = this.ipcRecordKit.nsrpc.registerClosure({
-            handler: (params) => { console.log('RecordKit:', params.formattedMessage); },
+            handler: (params) => {
+                console.log('RecordKit:', params.formattedMessage);
+                this.emit('log', params);
+            },
             prefix: 'RecordKit.logHandler',
             lifecycle: this
         });

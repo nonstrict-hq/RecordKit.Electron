@@ -1,5 +1,6 @@
 import { IpcRecordKit } from "./IpcRecordKit.js";
 import { Recorder } from "./Recorder.js";
+import { EventEmitter } from "stream";
 import { existsSync } from "node:fs";
 /**
  * Entry point for the RecordKit SDK, an instance is available as `recordkit` that can be imported from the module. Do not instantiate this class directly.
@@ -13,10 +14,12 @@ import { existsSync } from "node:fs";
  * @groupDescription Logging
  * Log what's going on to the console for easy debugging and troubleshooting.
  */
-export class RecordKit {
+export class RecordKit extends EventEmitter {
     ipcRecordKit = new IpcRecordKit();
     /** @ignore */
-    constructor() { }
+    constructor() {
+        super();
+    }
     /**
      * Initialize the RecordKit SDK.
      *
@@ -34,7 +37,10 @@ export class RecordKit {
         }
         await this.ipcRecordKit.initialize(rpcBinaryPath, args.logRpcMessages);
         const logHandlerInstance = this.ipcRecordKit.nsrpc.registerClosure({
-            handler: (params) => { console.log('RecordKit:', params.formattedMessage); },
+            handler: (params) => {
+                console.log('RecordKit:', params.formattedMessage);
+                this.emit('log', params);
+            },
             prefix: 'RecordKit.logHandler',
             lifecycle: this
         });
