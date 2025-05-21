@@ -1,1 +1,1 @@
-# recordkit-rpc 0.46.0-appstore
+# recordkit-rpc 0.47.0
