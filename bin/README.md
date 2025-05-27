@@ -1,1 +1,1 @@
-# recordkit-rpc 0.48.1
+# recordkit-rpc 0.48.2
