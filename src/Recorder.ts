@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { NSRPC } from "./NonstrictRPC.js";
 import { EventEmitter } from "stream";
-import { AppleDevice, Camera, Display, Microphone, Window } from "./RecordKit.js";
+import { AppleDevice, Camera, Display, Microphone, RunningApplication, Window } from "./RecordKit.js";
 
 /**
  * @group Recording
@@ -61,6 +61,26 @@ export class Recorder extends EventEmitter {
           item.device = item.device.id
         }
       }
+      if (item.type == 'systemAudio') {
+        if (item.output == 'segmented' && item.segmentCallback) {
+          const segmentHandler = item.segmentCallback;
+          (item as any).segmentCallback = rpc.registerClosure({
+            handler: (params) => { segmentHandler(params.path as string) },
+            prefix: 'SystemAudio.onSegment',
+            lifecycle: object
+          });
+        }
+      }
+      if (item.type == 'applicationAudio') {
+        if (item.output == 'segmented' && item.segmentCallback) {
+          const segmentHandler = item.segmentCallback;
+          (item as any).segmentCallback = rpc.registerClosure({
+            handler: (params) => { segmentHandler(params.path as string) },
+            prefix: 'ApplicationAudio.onSegment',
+            lifecycle: object
+          });
+        }
+      }
     })
 
     const weakRefObject = new WeakRef(object);
@@ -112,6 +132,8 @@ export type RecorderSchemaItem =
   | DisplaySchema
   | WindowBasedCropSchema
   | AppleDeviceStaticOrientationSchema
+  | SystemAudioSchema
+  | ApplicationAudioSchema
 
 /**
  * @group Recording Schemas
@@ -179,6 +201,76 @@ export interface AppleDeviceStaticOrientationSchema {
 }
 
 /**
+ * @group Recording Schemas
+ */
+export type SystemAudioMode = 'exclude' | 'include'
+
+/**
+ * @group Recording Schemas
+ */
+export type SystemAudioBackend = 'screenCaptureKit' | '_beta_coreAudio'
+
+/**
+ * @group Recording Schemas
+ */
+export type AudioOutputOptionsType = 'singleFile' | 'segmented'
+
+/**
+ * @group Recording Schemas
+ */
+export type SystemAudioSchema = {
+  type: 'systemAudio'
+  mode: 'exclude'
+  backend?: SystemAudioBackend
+  excludeOptions?: ('currentProcess')[]
+  excludedProcessIDs?: number[] // Int32
+  output?: 'singleFile'
+  filename?: string
+} | {
+  type: 'systemAudio'
+  mode: 'exclude'
+  backend?: SystemAudioBackend
+  excludeOptions?: ('currentProcess')[]
+  excludedProcessIDs?: number[] // Int32
+  output: 'segmented'
+  filenamePrefix?: string
+  segmentCallback?: (url: string) => void
+} | {
+  type: 'systemAudio'
+  mode: 'include'
+  backend?: SystemAudioBackend
+  includedApplicationIDs?: number[] // Int32
+  output?: 'singleFile'
+  filename?: string
+} | {
+  type: 'systemAudio'
+  mode: 'include'
+  backend?: SystemAudioBackend
+  includedApplicationIDs?: number[] // Int32
+  output: 'segmented'
+  filenamePrefix?: string
+  segmentCallback?: (url: string) => void
+}
+
+/**
+ * @group Recording Schemas
+ */
+export type ApplicationAudioSchema = {
+  type: 'applicationAudio'
+  applicationID: number // Int32
+  backend?: SystemAudioBackend
+  output?: 'singleFile'
+  filename?: string
+} | {
+  type: 'applicationAudio'
+  applicationID: number // Int32
+  backend?: SystemAudioBackend
+  output: 'segmented'
+  filenamePrefix?: string
+  segmentCallback?: (url: string) => void
+}
+
+/**
  * @group Recording
  */
 export type AbortReason =
@@ -206,7 +298,7 @@ export interface RecordKitError {
 export interface BundleInfo {
   version: 1,
   files: {
-    type: 'screen' | 'webcam' | 'mouse' | 'appleDevice'
+    type: 'screen' | 'webcam' | 'audio' | 'mouse' | 'systemAudio' | 'appleDevice' | 'topWindow'
     filename: string
   }[]
 }

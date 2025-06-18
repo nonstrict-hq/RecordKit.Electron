@@ -294,6 +294,26 @@ class Recorder extends stream.EventEmitter {
                     item.device = item.device.id;
                 }
             }
+            if (item.type == 'systemAudio') {
+                if (item.output == 'segmented' && item.segmentCallback) {
+                    const segmentHandler = item.segmentCallback;
+                    item.segmentCallback = rpc.registerClosure({
+                        handler: (params) => { segmentHandler(params.path); },
+                        prefix: 'SystemAudio.onSegment',
+                        lifecycle: object
+                    });
+                }
+            }
+            if (item.type == 'applicationAudio') {
+                if (item.output == 'segmented' && item.segmentCallback) {
+                    const segmentHandler = item.segmentCallback;
+                    item.segmentCallback = rpc.registerClosure({
+                        handler: (params) => { segmentHandler(params.path); },
+                        prefix: 'ApplicationAudio.onSegment',
+                        lifecycle: object
+                    });
+                }
+            }
         });
         const weakRefObject = new WeakRef(object);
         const onAbortInstance = rpc.registerClosure({
@@ -425,6 +445,12 @@ class RecordKit extends stream.EventEmitter {
      */
     async getAppleDevices() {
         return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getAppleDevices' });
+    }
+    /**
+     * @group Discovery
+     */
+    async getRunningApplications() {
+        return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getRunningApplications' });
     }
     /**
      * @group Permissions

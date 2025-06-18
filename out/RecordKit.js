@@ -100,6 +100,12 @@ export class RecordKit extends EventEmitter {
         return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getAppleDevices' });
     }
     /**
+     * @group Discovery
+     */
+    async getRunningApplications() {
+        return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getRunningApplications' });
+    }
+    /**
      * @group Permissions
      */
     async getCameraAuthorizationStatus() {

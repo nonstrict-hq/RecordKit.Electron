@@ -27,7 +27,7 @@ export declare class Recorder extends EventEmitter {
 /**
  * @group Recording
  */
-export type RecorderSchemaItem = WebcamSchema | DisplaySchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema;
+export type RecorderSchemaItem = WebcamSchema | DisplaySchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema | SystemAudioSchema | ApplicationAudioSchema;
 /**
  * @group Recording Schemas
  */
@@ -90,6 +90,71 @@ export interface AppleDeviceStaticOrientationSchema {
     device: AppleDevice | string;
 }
 /**
+ * @group Recording Schemas
+ */
+export type SystemAudioMode = 'exclude' | 'include';
+/**
+ * @group Recording Schemas
+ */
+export type SystemAudioBackend = 'screenCaptureKit' | '_beta_coreAudio';
+/**
+ * @group Recording Schemas
+ */
+export type AudioOutputOptionsType = 'singleFile' | 'segmented';
+/**
+ * @group Recording Schemas
+ */
+export type SystemAudioSchema = {
+    type: 'systemAudio';
+    mode: 'exclude';
+    backend?: SystemAudioBackend;
+    excludeOptions?: ('currentProcess')[];
+    excludedProcessIDs?: number[];
+    output?: 'singleFile';
+    filename?: string;
+} | {
+    type: 'systemAudio';
+    mode: 'exclude';
+    backend?: SystemAudioBackend;
+    excludeOptions?: ('currentProcess')[];
+    excludedProcessIDs?: number[];
+    output: 'segmented';
+    filenamePrefix?: string;
+    segmentCallback?: (url: string) => void;
+} | {
+    type: 'systemAudio';
+    mode: 'include';
+    backend?: SystemAudioBackend;
+    includedApplicationIDs?: number[];
+    output?: 'singleFile';
+    filename?: string;
+} | {
+    type: 'systemAudio';
+    mode: 'include';
+    backend?: SystemAudioBackend;
+    includedApplicationIDs?: number[];
+    output: 'segmented';
+    filenamePrefix?: string;
+    segmentCallback?: (url: string) => void;
+};
+/**
+ * @group Recording Schemas
+ */
+export type ApplicationAudioSchema = {
+    type: 'applicationAudio';
+    applicationID: number;
+    backend?: SystemAudioBackend;
+    output?: 'singleFile';
+    filename?: string;
+} | {
+    type: 'applicationAudio';
+    applicationID: number;
+    backend?: SystemAudioBackend;
+    output: 'segmented';
+    filenamePrefix?: string;
+    segmentCallback?: (url: string) => void;
+};
+/**
  * @group Recording
  */
 export type AbortReason = {
@@ -121,7 +186,7 @@ export interface RecordKitError {
 export interface BundleInfo {
     version: 1;
     files: {
-        type: 'screen' | 'webcam' | 'mouse' | 'appleDevice';
+        type: 'screen' | 'webcam' | 'audio' | 'mouse' | 'systemAudio' | 'appleDevice' | 'topWindow';
         filename: string;
     }[];
 }

@@ -131,6 +131,13 @@ export class RecordKit extends EventEmitter {
   }
 
   /**
+   * @group Discovery
+   */
+  async getRunningApplications(): Promise<RunningApplication[]> {
+    return await this.ipcRecordKit.nsrpc.perform({ type: 'Recorder', action: 'getRunningApplications' }) as RunningApplication[]
+  }
+
+  /**
    * @group Permissions
    */
   async getCameraAuthorizationStatus(): Promise<AuthorizationStatus> {
@@ -217,12 +224,22 @@ export interface AppleDevice {
 /**
  * @group Discovery
  */
+export interface RunningApplication {
+  id: number; // Int32
+  name?: string;
+  bundle_identifier?: string;
+  availability: 'available' | 'notRunning'
+}
+
+/**
+ * @group Discovery
+ */
 export interface Camera {
   id: string;
   name: string;
   model_id: string;
   manufacturer: string;
-  availability: 'available' | 'lidClosed' | 'unknownSuspended'
+  availability: 'available' | 'lidClosed' | 'unknownSuspended' | 'notConnected'
 
   /**
    * This URL can be used in a `img` tag to display a live preview of the camera feed in your user interface.
