@@ -136,6 +136,8 @@ export type RecorderSchemaItem =
   | ApplicationAudioSchema
 
 /**
+ * Creates a recorder item for a webcam movie file, using the provided microphone and camera. Output is stored in a RecordKit bundle.
+ * 
  * @group Recording Schemas
  */
 export interface WebcamSchema {
@@ -146,6 +148,8 @@ export interface WebcamSchema {
 }
 
 /**
+ * Creates a recorder item for recording a single display. Output is stored in a RecordKit bundle.
+ * 
  * @group Recording Schemas
  */
 export type DisplaySchema = {
@@ -170,6 +174,8 @@ export type DisplaySchema = {
 }
 
 /**
+ * Creates a recorder item for recording the initial crop of a window on a display. Output is stored in a RecordKit bundle.
+ * 
  * @group Recording Schemas
  */
 export type WindowBasedCropSchema = {
@@ -192,6 +198,8 @@ export type WindowBasedCropSchema = {
 }
 
 /**
+ * Creates a recorder item for an Apple device screen recording, using the provided deviceID. Output is stored in a RecordKit bundle.
+ * 
  * @group Recording Schemas
  */
 export interface AppleDeviceStaticOrientationSchema {
@@ -206,6 +214,11 @@ export interface AppleDeviceStaticOrientationSchema {
 export type SystemAudioMode = 'exclude' | 'include'
 
 /**
+ * Enumeration specifying the backend to use for system audio recording.
+ * 
+ * - `screenCaptureKit`: Use ScreenCaptureKit for system audio recording.
+ * - `_beta_coreAudio`: This a beta feature, it is not fully implemented yet. Do not use in production. Currently only records single files in .caf format.
+ * 
  * @group Recording Schemas
  */
 export type SystemAudioBackend = 'screenCaptureKit' | '_beta_coreAudio'
@@ -216,6 +229,11 @@ export type SystemAudioBackend = 'screenCaptureKit' | '_beta_coreAudio'
 export type AudioOutputOptionsType = 'singleFile' | 'segmented'
 
 /**
+ * Creates a recorder item for recording system audio. By default current process audio is excluded. Output is stored in a RecordKit bundle.
+ * 
+ * When using `mode: 'exclude'`, all system audio is recorded except for excluded applications.
+ * When using `mode: 'include'`, only audio from specified applications is recorded.
+ * 
  * @group Recording Schemas
  */
 export type SystemAudioSchema = {
@@ -253,6 +271,8 @@ export type SystemAudioSchema = {
 }
 
 /**
+ * Creates a recorder item for recording the audio of a single application. Output is stored in a RecordKit bundle.
+ * 
  * @group Recording Schemas
  */
 export type ApplicationAudioSchema = {
