@@ -1,7 +1,6 @@
 /// <reference types="node" resolution-mode="require"/>
-/// <reference types="node" resolution-mode="require"/>
 import { NSRPC } from "./NonstrictRPC.js";
-import { EventEmitter } from "stream";
+import { EventEmitter } from "events";
 import { AppleDevice, Camera, Display, Microphone, Window } from "./RecordKit.js";
 /**
  * @group Recording

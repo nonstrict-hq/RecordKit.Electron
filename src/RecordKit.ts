@@ -1,6 +1,6 @@
 import { IpcRecordKit } from "./IpcRecordKit.js";
 import { Recorder, RecorderSchemaItem } from "./Recorder.js";
-import { EventEmitter } from "stream";
+import { EventEmitter } from "events";
 import { existsSync } from "node:fs";
 
 /** 
@@ -331,13 +331,13 @@ export type AuthorizationStatus =
 export interface AppleDevice {
   /** An identifier that uniquely identifies the device. */
   id: string;
-  
+
   /** A localized device name for display in the user interface. */
   name: string;
-  
+
   /** The model of this device. */
   model_id?: string;
-  
+
   /** 
    * The current availability state of this device.
    * 
@@ -358,13 +358,13 @@ export interface AppleDevice {
 export interface RunningApplication {
   /** Identifier for this application (process id). */
   id: number; // Int32
-  
+
   /** Display name of the application. */
   name?: string;
-  
+
   /** Bundle identifier of the application (e.g., "com.apple.Safari"). */
   bundle_identifier?: string;
-  
+
   /** 
    * The current availability state of this application.
    * 
@@ -382,16 +382,16 @@ export interface RunningApplication {
 export interface Camera {
   /** An identifier that uniquely identifies the camera. */
   id: string;
-  
+
   /** A localized camera name for display in the user interface. */
   name: string;
-  
+
   /** The model ID of this camera. */
   model_id: string;
-  
+
   /** The manufacturer of this camera. */
   manufacturer: string;
-  
+
   /** 
    * The current availability state of this camera.
    * 
@@ -419,16 +419,16 @@ export interface Camera {
 export interface Microphone {
   /** An identifier that uniquely identifies the microphone. */
   id: string;
-  
+
   /** A localized microphone name for display in the user interface. */
   name: string;
-  
+
   /** The model ID of this microphone. */
   model_id: string;
-  
+
   /** The manufacturer of this microphone. */
   manufacturer: string;
-  
+
   /** 
    * The current availability state of this microphone.
    * 
@@ -448,16 +448,16 @@ export interface Microphone {
 export interface Display {
   /** An identifier that uniquely identifies this Mac display (CGDirectDisplayID). */
   id: number; // UInt32
-  
+
   /** Name of this display. */
   localizedName?: string;
-  
+
   /** Frame of the display, relative to the main display. Uses top-left coordinate space. */
   frame: Bounds
-  
+
   /** Indicates if this is the main display. */
   isMain: boolean
-  
+
   /** 
    * The current availability state of this display.
    * 
@@ -476,21 +476,21 @@ export interface Display {
 export interface Window {
   /** An identifier that uniquely identifies this macOS window (CGWindowID). */
   id: number; // UInt32
-  
+
   /** Title of the window. */
   title?: string;
-  
+
   /** Frame of the window, relative to the main display. Uses top-left coordinate space. */
   frame: Bounds
-  
+
   /** 
    * The level of the window relative to other windows.
    */
   level: number // Int
-  
+
   /** Process ID of the application that owns this window. */
   application_process_id?: number // Int32
-  
+
   /** Name of the application that owns this window. */
   application_name?: string
 }

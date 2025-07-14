@@ -3,7 +3,7 @@
 var node_child_process = require('node:child_process');
 var readline = require('readline');
 var crypto = require('crypto');
-var stream = require('stream');
+var events = require('events');
 var node_fs = require('node:fs');
 
 function _interopNamespaceDefault(e) {
@@ -288,7 +288,7 @@ function convertRPCParamsToAudioStreamBuffer(params) {
 /**
  * @group Recording
  */
-class Recorder extends stream.EventEmitter {
+class Recorder extends events.EventEmitter {
     rpc;
     target;
     /** @ignore */
@@ -454,7 +454,7 @@ class Recorder extends stream.EventEmitter {
  * @groupDescription Logging
  * Log what's going on to the console for easy debugging and troubleshooting.
  */
-class RecordKit extends stream.EventEmitter {
+class RecordKit extends events.EventEmitter {
     ipcRecordKit = new IpcRecordKit();
     /** @ignore */
     constructor() {

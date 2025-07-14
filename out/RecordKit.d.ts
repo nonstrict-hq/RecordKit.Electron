@@ -1,7 +1,6 @@
 /// <reference types="node" resolution-mode="require"/>
-/// <reference types="node" resolution-mode="require"/>
 import { Recorder, RecorderSchemaItem } from "./Recorder.js";
-import { EventEmitter } from "stream";
+import { EventEmitter } from "events";
 /**
  * Entry point for the RecordKit SDK, an instance is available as `recordkit` that can be imported from the module. Do not instantiate this class directly.
  *

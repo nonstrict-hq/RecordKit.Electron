@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { NSRPC } from "./NonstrictRPC.js";
-import { EventEmitter } from "stream";
+import { EventEmitter } from "events";
 import { AppleDevice, Camera, Display, Microphone, RunningApplication, Window } from "./RecordKit.js";
 
 /**
@@ -11,39 +11,39 @@ function convertRPCParamsToAudioStreamBuffer(params: any): AudioStreamBuffer | n
   try {
     // params is the AudioBufferData directly from Swift
     const rawAudioBuffer = params as any;
-    
+
     if (!rawAudioBuffer || !Array.isArray(rawAudioBuffer.channelData)) {
       console.error('RecordKit: Invalid audio buffer received from RPC');
       return null;
     }
-    
+
     const channelData: Float32Array[] = [];
-    
+
     for (const base64Data of rawAudioBuffer.channelData) {
       if (typeof base64Data !== 'string') {
         console.error('RecordKit: Invalid base64 data received');
         return null;
       }
-      
+
       // Decode base64 to binary data
       const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      
+
       // Convert bytes to Float32Array
       const float32Array = new Float32Array(bytes.buffer);
       channelData.push(float32Array);
     }
-    
+
     const audioStreamBuffer: AudioStreamBuffer = {
       sampleRate: rawAudioBuffer.sampleRate,
       numberOfChannels: rawAudioBuffer.numberOfChannels,
       numberOfFrames: rawAudioBuffer.numberOfFrames,
       channelData: channelData
     };
-    
+
     return audioStreamBuffer;
   } catch (error) {
     console.error('RecordKit: Error processing audio stream buffer:', error);

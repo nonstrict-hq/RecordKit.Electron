@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { EventEmitter } from "stream";
+import { EventEmitter } from "events";
 /**
  * Converts RPC audio buffer data to AudioStreamBuffer format
  * @internal
