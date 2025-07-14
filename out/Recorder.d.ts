@@ -27,7 +27,7 @@ export declare class Recorder extends EventEmitter {
 /**
  * @group Recording
  */
-export type RecorderSchemaItem = WebcamSchema | DisplaySchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema | SystemAudioSchema | ApplicationAudioSchema;
+export type RecorderSchemaItem = WebcamSchema | DisplaySchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema | SystemAudioSchema | ApplicationAudioSchema | MicrophoneSchema;
 /**
  * Creates a recorder item for a webcam movie file, using the provided microphone and camera. Output is stored in a RecordKit bundle.
  *
@@ -113,7 +113,11 @@ export type SystemAudioBackend = 'screenCaptureKit' | '_beta_coreAudio';
 /**
  * @group Recording Schemas
  */
-export type AudioOutputOptionsType = 'singleFile' | 'segmented';
+export type AudioOutputOptionsType = 'singleFile' | 'segmented' | 'stream';
+/**
+ * @group Recording Schemas
+ */
+export type MicrophoneOutputOptionsType = 'singleFile' | 'segmented' | 'stream';
 /**
  * Creates a recorder item for recording system audio. By default current process audio is excluded. Output is stored in a RecordKit bundle.
  *
@@ -141,6 +145,15 @@ export type SystemAudioSchema = {
     segmentCallback?: (url: string) => void;
 } | {
     type: 'systemAudio';
+    mode: 'exclude';
+    backend?: SystemAudioBackend;
+    excludeOptions?: ('currentProcess')[];
+    excludedProcessIDs?: number[];
+    output: 'stream';
+    /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+    streamCallback?: (audioBuffer: AudioStreamBuffer) => void;
+} | {
+    type: 'systemAudio';
     mode: 'include';
     backend?: SystemAudioBackend;
     includedApplicationIDs?: number[];
@@ -154,6 +167,14 @@ export type SystemAudioSchema = {
     output: 'segmented';
     filenamePrefix?: string;
     segmentCallback?: (url: string) => void;
+} | {
+    type: 'systemAudio';
+    mode: 'include';
+    backend?: SystemAudioBackend;
+    includedApplicationIDs?: number[];
+    output: 'stream';
+    /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+    streamCallback?: (audioBuffer: AudioStreamBuffer) => void;
 };
 /**
  * Creates a recorder item for recording the audio of a single application. Output is stored in a RecordKit bundle.
@@ -173,7 +194,56 @@ export type ApplicationAudioSchema = {
     output: 'segmented';
     filenamePrefix?: string;
     segmentCallback?: (url: string) => void;
+} | {
+    type: 'applicationAudio';
+    applicationID: number;
+    backend?: SystemAudioBackend;
+    output: 'stream';
+    /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+    streamCallback?: (audioBuffer: AudioStreamBuffer) => void;
 };
+/**
+ * Creates a recorder item for an audio file, using the provided microphone. Output is stored in a RecordKit bundle.
+ *
+ * @group Recording Schemas
+ */
+export type MicrophoneSchema = {
+    type: 'microphone';
+    microphone: Microphone | string;
+    leftChannelOnly?: boolean;
+    audioDelay?: number;
+    output?: 'singleFile';
+    filename?: string;
+} | {
+    type: 'microphone';
+    microphone: Microphone | string;
+    leftChannelOnly?: boolean;
+    audioDelay?: number;
+    output: 'segmented';
+    filenamePrefix?: string;
+    segmentCallback?: (url: string) => void;
+} | {
+    type: 'microphone';
+    microphone: Microphone | string;
+    output: 'stream';
+    /** Called with real-time audio buffer data compatible with Web Audio API */
+    streamCallback?: (audioBuffer: AudioStreamBuffer) => void;
+};
+/**
+ * Audio buffer compatible with Web Audio API
+ *
+ * @group Recording
+ */
+export interface AudioStreamBuffer {
+    /** Sample rate in Hz (e.g., 44100, 48000) */
+    sampleRate: number;
+    /** Number of audio channels */
+    numberOfChannels: number;
+    /** Number of frames per channel */
+    numberOfFrames: number;
+    /** Non-interleaved Float32 audio data - one array per channel */
+    channelData: Float32Array[];
+}
 /**
  * @group Recording
  */

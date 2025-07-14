@@ -4,6 +4,54 @@ import { EventEmitter } from "stream";
 import { AppleDevice, Camera, Display, Microphone, RunningApplication, Window } from "./RecordKit.js";
 
 /**
+ * Converts RPC audio buffer data to AudioStreamBuffer format
+ * @internal
+ */
+function convertRPCParamsToAudioStreamBuffer(params: any): AudioStreamBuffer | null {
+  try {
+    // params is the AudioBufferData directly from Swift
+    const rawAudioBuffer = params as any;
+    
+    if (!rawAudioBuffer || !Array.isArray(rawAudioBuffer.channelData)) {
+      console.error('RecordKit: Invalid audio buffer received from RPC');
+      return null;
+    }
+    
+    const channelData: Float32Array[] = [];
+    
+    for (const base64Data of rawAudioBuffer.channelData) {
+      if (typeof base64Data !== 'string') {
+        console.error('RecordKit: Invalid base64 data received');
+        return null;
+      }
+      
+      // Decode base64 to binary data
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Convert bytes to Float32Array
+      const float32Array = new Float32Array(bytes.buffer);
+      channelData.push(float32Array);
+    }
+    
+    const audioStreamBuffer: AudioStreamBuffer = {
+      sampleRate: rawAudioBuffer.sampleRate,
+      numberOfChannels: rawAudioBuffer.numberOfChannels,
+      numberOfFrames: rawAudioBuffer.numberOfFrames,
+      channelData: channelData
+    };
+    
+    return audioStreamBuffer;
+  } catch (error) {
+    console.error('RecordKit: Error processing audio stream buffer:', error);
+    return null;
+  }
+}
+
+/**
  * @group Recording
  */
 export class Recorder extends EventEmitter {
@@ -70,6 +118,19 @@ export class Recorder extends EventEmitter {
             lifecycle: object
           });
         }
+        if (item.output == 'stream' && item.streamCallback) {
+          const streamHandler = item.streamCallback;
+          (item as any).streamCallback = rpc.registerClosure({
+            handler: (params) => {
+              const audioBuffer = convertRPCParamsToAudioStreamBuffer(params);
+              if (audioBuffer) {
+                streamHandler(audioBuffer);
+              }
+            },
+            prefix: 'SystemAudioStream.onAudioBuffer',
+            lifecycle: object
+          });
+        }
       }
       if (item.type == 'applicationAudio') {
         if (item.output == 'segmented' && item.segmentCallback) {
@@ -77,6 +138,45 @@ export class Recorder extends EventEmitter {
           (item as any).segmentCallback = rpc.registerClosure({
             handler: (params) => { segmentHandler(params.path as string) },
             prefix: 'ApplicationAudio.onSegment',
+            lifecycle: object
+          });
+        }
+        if (item.output == 'stream' && item.streamCallback) {
+          const streamHandler = item.streamCallback;
+          (item as any).streamCallback = rpc.registerClosure({
+            handler: (params) => {
+              const audioBuffer = convertRPCParamsToAudioStreamBuffer(params);
+              if (audioBuffer) {
+                streamHandler(audioBuffer);
+              }
+            },
+            prefix: 'ApplicationAudioStream.onAudioBuffer',
+            lifecycle: object
+          });
+        }
+      }
+      if (item.type == 'microphone') {
+        if (typeof item.microphone != 'string') {
+          item.microphone = item.microphone.id
+        }
+        if (item.output == 'segmented' && item.segmentCallback) {
+          const segmentHandler = item.segmentCallback;
+          (item as any).segmentCallback = rpc.registerClosure({
+            handler: (params) => { segmentHandler(params.path as string) },
+            prefix: 'Microphone.onSegment',
+            lifecycle: object
+          });
+        }
+        if (item.output == 'stream' && item.streamCallback) {
+          const streamHandler = item.streamCallback;
+          (item as any).streamCallback = rpc.registerClosure({
+            handler: (params) => {
+              const audioBuffer = convertRPCParamsToAudioStreamBuffer(params);
+              if (audioBuffer) {
+                streamHandler(audioBuffer);
+              }
+            },
+            prefix: 'MicrophoneStream.onAudioBuffer',
             lifecycle: object
           });
         }
@@ -134,6 +234,7 @@ export type RecorderSchemaItem =
   | AppleDeviceStaticOrientationSchema
   | SystemAudioSchema
   | ApplicationAudioSchema
+  | MicrophoneSchema
 
 /**
  * Creates a recorder item for a webcam movie file, using the provided microphone and camera. Output is stored in a RecordKit bundle.
@@ -226,7 +327,12 @@ export type SystemAudioBackend = 'screenCaptureKit' | '_beta_coreAudio'
 /**
  * @group Recording Schemas
  */
-export type AudioOutputOptionsType = 'singleFile' | 'segmented'
+export type AudioOutputOptionsType = 'singleFile' | 'segmented' | 'stream'
+
+/**
+ * @group Recording Schemas
+ */
+export type MicrophoneOutputOptionsType = 'singleFile' | 'segmented' | 'stream'
 
 /**
  * Creates a recorder item for recording system audio. By default current process audio is excluded. Output is stored in a RecordKit bundle.
@@ -255,6 +361,15 @@ export type SystemAudioSchema = {
   segmentCallback?: (url: string) => void
 } | {
   type: 'systemAudio'
+  mode: 'exclude'
+  backend?: SystemAudioBackend
+  excludeOptions?: ('currentProcess')[]
+  excludedProcessIDs?: number[] // Int32
+  output: 'stream'
+  /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+  streamCallback?: (audioBuffer: AudioStreamBuffer) => void
+} | {
+  type: 'systemAudio'
   mode: 'include'
   backend?: SystemAudioBackend
   includedApplicationIDs?: number[] // Int32
@@ -268,6 +383,14 @@ export type SystemAudioSchema = {
   output: 'segmented'
   filenamePrefix?: string
   segmentCallback?: (url: string) => void
+} | {
+  type: 'systemAudio'
+  mode: 'include'
+  backend?: SystemAudioBackend
+  includedApplicationIDs?: number[] // Int32
+  output: 'stream'
+  /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+  streamCallback?: (audioBuffer: AudioStreamBuffer) => void
 }
 
 /**
@@ -288,7 +411,59 @@ export type ApplicationAudioSchema = {
   output: 'segmented'
   filenamePrefix?: string
   segmentCallback?: (url: string) => void
+} | {
+  type: 'applicationAudio'
+  applicationID: number // Int32
+  backend?: SystemAudioBackend
+  output: 'stream'
+  /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+  streamCallback?: (audioBuffer: AudioStreamBuffer) => void
 }
+
+/**
+ * Creates a recorder item for an audio file, using the provided microphone. Output is stored in a RecordKit bundle.
+ * 
+ * @group Recording Schemas
+ */
+export type MicrophoneSchema = {
+  type: 'microphone'
+  microphone: Microphone | string
+  leftChannelOnly?: boolean
+  audioDelay?: number
+  output?: 'singleFile'
+  filename?: string
+} | {
+  type: 'microphone'
+  microphone: Microphone | string
+  leftChannelOnly?: boolean
+  audioDelay?: number
+  output: 'segmented'
+  filenamePrefix?: string
+  segmentCallback?: (url: string) => void
+} | {
+  type: 'microphone'
+  microphone: Microphone | string
+  output: 'stream'
+  /** Called with real-time audio buffer data compatible with Web Audio API */
+  streamCallback?: (audioBuffer: AudioStreamBuffer) => void
+}
+
+/**
+ * Audio buffer compatible with Web Audio API
+ * 
+ * @group Recording
+ */
+export interface AudioStreamBuffer {
+  /** Sample rate in Hz (e.g., 44100, 48000) */
+  sampleRate: number
+  /** Number of audio channels */
+  numberOfChannels: number
+  /** Number of frames per channel */
+  numberOfFrames: number
+  /** Non-interleaved Float32 audio data - one array per channel */
+  channelData: Float32Array[]
+}
+
 
 /**
  * @group Recording

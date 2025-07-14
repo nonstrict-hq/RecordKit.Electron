@@ -245,6 +245,47 @@ class IpcRecordKit {
 }
 
 /**
+ * Converts RPC audio buffer data to AudioStreamBuffer format
+ * @internal
+ */
+function convertRPCParamsToAudioStreamBuffer(params) {
+    try {
+        // params is the AudioBufferData directly from Swift
+        const rawAudioBuffer = params;
+        if (!rawAudioBuffer || !Array.isArray(rawAudioBuffer.channelData)) {
+            console.error('RecordKit: Invalid audio buffer received from RPC');
+            return null;
+        }
+        const channelData = [];
+        for (const base64Data of rawAudioBuffer.channelData) {
+            if (typeof base64Data !== 'string') {
+                console.error('RecordKit: Invalid base64 data received');
+                return null;
+            }
+            // Decode base64 to binary data
+            const binaryString = atob(base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            // Convert bytes to Float32Array
+            const float32Array = new Float32Array(bytes.buffer);
+            channelData.push(float32Array);
+        }
+        const audioStreamBuffer = {
+            sampleRate: rawAudioBuffer.sampleRate,
+            numberOfChannels: rawAudioBuffer.numberOfChannels,
+            numberOfFrames: rawAudioBuffer.numberOfFrames,
+            channelData: channelData
+        };
+        return audioStreamBuffer;
+    }
+    catch (error) {
+        console.error('RecordKit: Error processing audio stream buffer:', error);
+        return null;
+    }
+}
+/**
  * @group Recording
  */
 class Recorder extends stream.EventEmitter {
@@ -303,6 +344,19 @@ class Recorder extends stream.EventEmitter {
                         lifecycle: object
                     });
                 }
+                if (item.output == 'stream' && item.streamCallback) {
+                    const streamHandler = item.streamCallback;
+                    item.streamCallback = rpc.registerClosure({
+                        handler: (params) => {
+                            const audioBuffer = convertRPCParamsToAudioStreamBuffer(params);
+                            if (audioBuffer) {
+                                streamHandler(audioBuffer);
+                            }
+                        },
+                        prefix: 'SystemAudioStream.onAudioBuffer',
+                        lifecycle: object
+                    });
+                }
             }
             if (item.type == 'applicationAudio') {
                 if (item.output == 'segmented' && item.segmentCallback) {
@@ -310,6 +364,45 @@ class Recorder extends stream.EventEmitter {
                     item.segmentCallback = rpc.registerClosure({
                         handler: (params) => { segmentHandler(params.path); },
                         prefix: 'ApplicationAudio.onSegment',
+                        lifecycle: object
+                    });
+                }
+                if (item.output == 'stream' && item.streamCallback) {
+                    const streamHandler = item.streamCallback;
+                    item.streamCallback = rpc.registerClosure({
+                        handler: (params) => {
+                            const audioBuffer = convertRPCParamsToAudioStreamBuffer(params);
+                            if (audioBuffer) {
+                                streamHandler(audioBuffer);
+                            }
+                        },
+                        prefix: 'ApplicationAudioStream.onAudioBuffer',
+                        lifecycle: object
+                    });
+                }
+            }
+            if (item.type == 'microphone') {
+                if (typeof item.microphone != 'string') {
+                    item.microphone = item.microphone.id;
+                }
+                if (item.output == 'segmented' && item.segmentCallback) {
+                    const segmentHandler = item.segmentCallback;
+                    item.segmentCallback = rpc.registerClosure({
+                        handler: (params) => { segmentHandler(params.path); },
+                        prefix: 'Microphone.onSegment',
+                        lifecycle: object
+                    });
+                }
+                if (item.output == 'stream' && item.streamCallback) {
+                    const streamHandler = item.streamCallback;
+                    item.streamCallback = rpc.registerClosure({
+                        handler: (params) => {
+                            const audioBuffer = convertRPCParamsToAudioStreamBuffer(params);
+                            if (audioBuffer) {
+                                streamHandler(audioBuffer);
+                            }
+                        },
+                        prefix: 'MicrophoneStream.onAudioBuffer',
                         lifecycle: object
                     });
                 }
