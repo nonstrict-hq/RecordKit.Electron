@@ -246,6 +246,9 @@ export interface WebcamSchema {
   filename?: string
   camera: Camera | string
   microphone: Microphone | string
+  preserveActiveCameraConfiguration?: boolean
+  leftAudioChannelOnly?: boolean
+  audioDelay?: number
 }
 
 /**

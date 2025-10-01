@@ -37,6 +37,9 @@ export interface WebcamSchema {
     filename?: string;
     camera: Camera | string;
     microphone: Microphone | string;
+    preserveActiveCameraConfiguration?: boolean;
+    leftAudioChannelOnly?: boolean;
+    audioDelay?: number;
 }
 /**
  * Creates a recorder item for recording a single display. Output is stored in a RecordKit bundle.
