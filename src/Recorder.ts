@@ -185,7 +185,7 @@ export class Recorder extends EventEmitter {
 
     const weakRefObject = new WeakRef(object);
     const onAbortInstance = rpc.registerClosure({
-      handler: (params) => { weakRefObject.deref()?.emit('abort', params.reason as AbortReason) },
+      handler: (params) => { weakRefObject.deref()?.emit('abort', params as AbortReason) },
       prefix: 'Recorder.onAbort',
       lifecycle: object
     });
@@ -473,8 +473,8 @@ export interface AudioStreamBuffer {
  */
 export type AbortReason =
   | { reason: 'userStopped'; result: RecordingResult; }
-  | { reason: 'interrupted'; result: RecordingResult; error: RecordKitError; }
-  | { reason: 'failed'; error: RecordKitError; }
+  | { reason: 'interrupted'; result: RecordingResult; error: any; }
+  | { reason: 'failed'; error: any; }
 
 /**
  * @group Recording
@@ -485,9 +485,11 @@ export interface RecordingResult {
 }
 
 export interface RecordKitError {
-  message?: string // Message describing the problem and possible recovery options, intended to be shown directly to the end-user.
-  error_group: string // Generic title, used for grouping related errors
-  debug_description: string // Detailed technical description of this error, used in debugging
+  name: "RecordKitError"
+  code: string  // Error code, used for grouping related errors
+  codeNumber: number // Error code number
+  message: string  // Message describing the problem and possible recovery options, intended to be shown directly to the end-user.
+  debugDescription: string  // Detailed technical description of this error, used in debugging
 }
 
 /**

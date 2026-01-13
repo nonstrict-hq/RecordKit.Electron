@@ -255,10 +255,10 @@ export type AbortReason = {
 } | {
     reason: 'interrupted';
     result: RecordingResult;
-    error: RecordKitError;
+    error: any;
 } | {
     reason: 'failed';
-    error: RecordKitError;
+    error: any;
 };
 /**
  * @group Recording
@@ -268,9 +268,11 @@ export interface RecordingResult {
     info: BundleInfo;
 }
 export interface RecordKitError {
-    message?: string;
-    error_group: string;
-    debug_description: string;
+    name: "RecordKitError";
+    code: string;
+    codeNumber: number;
+    message: string;
+    debugDescription: string;
 }
 /**
  * @group Recording

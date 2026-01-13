@@ -410,7 +410,7 @@ class Recorder extends events.EventEmitter {
         });
         const weakRefObject = new WeakRef(object);
         const onAbortInstance = rpc.registerClosure({
-            handler: (params) => { weakRefObject.deref()?.emit('abort', params.reason); },
+            handler: (params) => { weakRefObject.deref()?.emit('abort', params); },
             prefix: 'Recorder.onAbort',
             lifecycle: object
         });
