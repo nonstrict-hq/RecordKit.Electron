@@ -152,7 +152,7 @@ export type SystemAudioSchema = {
     excludeOptions?: ('currentProcess')[];
     excludedProcessIDs?: number[];
     output: 'stream';
-    /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+    /** Called with real-time audio buffer data compatible with Web Audio API. */
     streamCallback?: (audioBuffer: AudioStreamBuffer) => void;
 } | {
     type: 'systemAudio';
@@ -175,7 +175,7 @@ export type SystemAudioSchema = {
     backend?: SystemAudioBackend;
     includedApplicationIDs?: number[];
     output: 'stream';
-    /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+    /** Called with real-time audio buffer data compatible with Web Audio API. */
     streamCallback?: (audioBuffer: AudioStreamBuffer) => void;
 };
 /**
@@ -201,7 +201,7 @@ export type ApplicationAudioSchema = {
     applicationID: number;
     backend?: SystemAudioBackend;
     output: 'stream';
-    /** Called with real-time audio buffer data compatible with Web Audio API. Requires _beta_coreAudio backend and macOS 14.2+ */
+    /** Called with real-time audio buffer data compatible with Web Audio API. */
     streamCallback?: (audioBuffer: AudioStreamBuffer) => void;
 };
 /**
