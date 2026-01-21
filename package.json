@@ -1,8 +1,8 @@
 {
   "name": "@nonstrict/recordkit",
-  "version": "0.72.1-appstore",
+  "version": "0.73.0",
   "description": "Powerful screen recording for your Electron app on macOS.",
-  "homepage": "https://nonstrict.eu/recordkit",
+  "homepage": "https://recordkit.dev",
   "repository": "nonstrict-hq/RecordKit.Electron",
   "type": "module",
   "main": "out/index.js",

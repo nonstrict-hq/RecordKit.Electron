@@ -3,7 +3,7 @@
     "src/index.ts"
   ],
   "navigationLinks": {
-    "Back to the Homepage": "http://nonstrict.eu/recordkit"
+    "Back to the Homepage": "https://recordkit.dev"
   },
   "excludeExternals": true,
   "excludePrivate": true,
@@ -16,5 +16,5 @@
     "alphabetical"
   ],
   "sortEntryPoints": false,
-  "sitemapBaseUrl": "http://nonstrict.eu/recordkit/api/electron/",
+  "sitemapBaseUrl": "https://recordkit.dev/api/electron/",
 }

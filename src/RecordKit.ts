@@ -3,17 +3,17 @@ import { Recorder, RecorderSchemaItem } from "./Recorder.js";
 import { EventEmitter } from "events";
 import { existsSync } from "node:fs";
 
-/** 
+/**
  * Entry point for the RecordKit SDK, an instance is available as `recordkit` that can be imported from the module. Do not instantiate this class directly.
- * 
+ *
  * @groupDescription Discovery
  * Discover the windows and devices that are available to record.
- * 
+ *
  * @groupDescription Permissions
  * Check and request the apps permission to access the recording devices.
- * 
+ *
  * @groupDescription Logging
- * Log what's going on to the console for easy debugging and troubleshooting.
+ * Log what's going on to the console for easy debugging and troubleshooting. See the [Logging and Error Handling guide](https://recordkit.dev/guides/logging-and-errors) for more information.
  */
 export class RecordKit extends EventEmitter {
   private ipcRecordKit = new IpcRecordKit()

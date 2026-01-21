@@ -12,7 +12,7 @@ import { existsSync } from "node:fs";
  * Check and request the apps permission to access the recording devices.
  *
  * @groupDescription Logging
- * Log what's going on to the console for easy debugging and troubleshooting.
+ * Log what's going on to the console for easy debugging and troubleshooting. See the [Logging and Error Handling guide](https://recordkit.dev/guides/logging-and-errors) for more information.
  */
 export class RecordKit extends EventEmitter {
     ipcRecordKit = new IpcRecordKit();

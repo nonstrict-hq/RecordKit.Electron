@@ -49,6 +49,10 @@ export interface WebcamSchema {
 export type DisplaySchema = {
     type: 'display';
     display: Display | number;
+    /** Color space for the recording. Defaults to 'sRGB'. Note: 'displayP3' requires 'hevc' video codec. */
+    colorSpace?: ColorSpace;
+    /** Video codec for the recording. Defaults to 'h264'. */
+    videoCodec?: VideoCodec;
     shows_cursor?: boolean;
     mouse_events?: boolean;
     keyboard_events?: boolean;
@@ -58,6 +62,10 @@ export type DisplaySchema = {
 } | {
     type: 'display';
     display: Display | number;
+    /** Color space for the recording. Defaults to 'sRGB'. Note: 'displayP3' requires 'hevc' video codec. */
+    colorSpace?: ColorSpace;
+    /** Video codec for the recording. Defaults to 'h264'. */
+    videoCodec?: VideoCodec;
     shows_cursor?: boolean;
     mouse_events?: boolean;
     keyboard_events?: boolean;
@@ -74,6 +82,10 @@ export type DisplaySchema = {
 export type WindowBasedCropSchema = {
     type: 'windowBasedCrop';
     window: Window | number;
+    /** Color space for the recording. Defaults to 'sRGB'. Note: 'displayP3' requires 'hevc' video codec. */
+    colorSpace?: ColorSpace;
+    /** Video codec for the recording. Defaults to 'h264'. */
+    videoCodec?: VideoCodec;
     shows_cursor?: boolean;
     mouse_events?: boolean;
     keyboard_events?: boolean;
@@ -82,6 +94,10 @@ export type WindowBasedCropSchema = {
 } | {
     type: 'windowBasedCrop';
     window: Window | number;
+    /** Color space for the recording. Defaults to 'sRGB'. Note: 'displayP3' requires 'hevc' video codec. */
+    colorSpace?: ColorSpace;
+    /** Video codec for the recording. Defaults to 'h264'. */
+    videoCodec?: VideoCodec;
     shows_cursor?: boolean;
     mouse_events?: boolean;
     keyboard_events?: boolean;
@@ -99,6 +115,25 @@ export interface AppleDeviceStaticOrientationSchema {
     filename?: string;
     device: AppleDevice | string;
 }
+/**
+ * Video codec for screen recording.
+ * - `h264`: H.264/AVC codec - most compatible, works on all devices.
+ * - `hevc`: H.265/HEVC codec - smaller file sizes, requires newer devices for playback.
+ *
+ * @group Recording Schemas
+ */
+export type VideoCodec = 'h264' | 'hevc';
+/**
+ * Color space for screen recording.
+ * - `sRGB`: Standard RGB color space, compatible with all modern displays.
+ * - `displayP3`: Display P3 color space, used in high-end Apple displays for wide gamut colors.
+ *
+ * Note: Display P3 is only supported with HEVC codec. If Display P3 is requested with H.264,
+ * it will automatically fall back to sRGB.
+ *
+ * @group Recording Schemas
+ */
+export type ColorSpace = 'sRGB' | 'displayP3';
 /**
  * @group Recording Schemas
  */
@@ -267,11 +302,20 @@ export interface RecordingResult {
     url: string;
     info: BundleInfo;
 }
+/**
+ * Errors produced by RecordKit include user-friendly messages suitable for display in your UI.
+ *
+ * See the [Logging and Error Handling guide](https://recordkit.dev/guides/logging-and-errors#error-handling) for more information.
+ */
 export interface RecordKitError {
     name: "RecordKitError";
+    /** Error code, used for grouping related errors */
     code: string;
+    /** Error code number */
     codeNumber: number;
+    /** Message describing the problem and possible recovery options, intended to be shown directly to the end-user. */
     message: string;
+    /** Detailed technical description of this error, used in debugging */
     debugDescription: string;
 }
 /**
