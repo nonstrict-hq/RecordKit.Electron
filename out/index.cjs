@@ -303,6 +303,14 @@ class Recorder extends events.EventEmitter {
                 if (typeof item.microphone != 'string') {
                     item.microphone = item.microphone.id;
                 }
+                if (item.output == 'segmented' && item.segmentCallback) {
+                    const segmentHandler = item.segmentCallback;
+                    item.segmentCallback = rpc.registerClosure({
+                        handler: (params) => { segmentHandler(params.path); },
+                        prefix: 'Webcam.onSegment',
+                        lifecycle: object
+                    });
+                }
             }
             if (item.type == 'display') {
                 if (typeof item.display != 'number') {

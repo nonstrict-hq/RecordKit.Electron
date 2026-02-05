@@ -77,6 +77,14 @@ export class Recorder extends EventEmitter {
         if (typeof item.microphone != 'string') {
           item.microphone = item.microphone.id
         }
+        if (item.output == 'segmented' && item.segmentCallback) {
+          const segmentHandler = item.segmentCallback;
+          (item as any).segmentCallback = rpc.registerClosure({
+            handler: (params) => { segmentHandler(params.path as string) },
+            prefix: 'Webcam.onSegment',
+            lifecycle: object
+          });
+        }
       }
       if (item.type == 'display') {
         if (typeof item.display != 'number') {
@@ -238,17 +246,32 @@ export type RecorderSchemaItem =
 
 /**
  * Creates a recorder item for a webcam movie file, using the provided microphone and camera. Output is stored in a RecordKit bundle.
- * 
+ *
  * @group Recording Schemas
  */
-export interface WebcamSchema {
+export type WebcamSchema = {
   type: 'webcam'
-  filename?: string
   camera: Camera | string
   microphone: Microphone | string
+  /** Video codec for the recording. Defaults to 'h264'. */
+  videoCodec?: VideoCodec
   preserveActiveCameraConfiguration?: boolean
   leftAudioChannelOnly?: boolean
   audioDelay?: number
+  output?: 'singleFile'
+  filename?: string
+} | {
+  type: 'webcam'
+  camera: Camera | string
+  microphone: Microphone | string
+  /** Video codec for the recording. Defaults to 'h264'. */
+  videoCodec?: VideoCodec
+  preserveActiveCameraConfiguration?: boolean
+  leftAudioChannelOnly?: boolean
+  audioDelay?: number
+  output: 'segmented'
+  filenamePrefix?: string
+  segmentCallback?: (url: string) => void
 }
 
 /**
@@ -358,7 +381,7 @@ export type SystemAudioMode = 'exclude' | 'include'
  * Enumeration specifying the backend to use for system audio recording.
  * 
  * - `screenCaptureKit`: Use ScreenCaptureKit for system audio recording.
- * - `_beta_coreAudio`: This is a beta feature, not fully tested yet. Do not use in production. Supports single-file and segmented output in M4A/AAC format. Streaming output is not yet supported.
+ * - `_beta_coreAudio`: This a beta feature, it is not fully implemented yet. Do not use in production. Currently only records single files in .caf format.
  * 
  * @group Recording Schemas
  */
