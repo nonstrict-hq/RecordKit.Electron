@@ -157,7 +157,7 @@ export type SystemAudioMode = 'exclude' | 'include';
  * Enumeration specifying the backend to use for system audio recording.
  *
  * - `screenCaptureKit`: Use ScreenCaptureKit for system audio recording.
- * - `_beta_coreAudio`: This a beta feature, it is not fully implemented yet. Do not use in production. Currently only records single files in .caf format.
+ * - `_beta_coreAudio`: This is a beta feature, not fully tested yet. Do not use in production. Supports single-file and segmented output in M4A/AAC format. Streaming output is not yet supported.
  *
  * @group Recording Schemas
  */
