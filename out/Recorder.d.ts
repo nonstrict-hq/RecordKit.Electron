@@ -26,7 +26,7 @@ export declare class Recorder extends EventEmitter {
 /**
  * @group Recording
  */
-export type RecorderSchemaItem = WebcamSchema | DisplaySchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema | SystemAudioSchema | ApplicationAudioSchema | MicrophoneSchema;
+export type RecorderSchemaItem = WebcamSchema | DisplaySchema | WindowBasedCropSchema | AppleDeviceStaticOrientationSchema | AppleDeviceSchema | SystemAudioSchema | ApplicationAudioSchema | MicrophoneSchema;
 /**
  * Creates a recorder item for a webcam movie file, using the provided microphone and camera. Output is stored in a RecordKit bundle.
  *
@@ -123,10 +123,21 @@ export type WindowBasedCropSchema = {
 /**
  * Creates a recorder item for an Apple device screen recording, using the provided deviceID. Output is stored in a RecordKit bundle.
  *
+ * @deprecated Use {@link AppleDeviceSchema} instead.
  * @group Recording Schemas
  */
 export interface AppleDeviceStaticOrientationSchema {
     type: 'appleDeviceStaticOrientation';
+    filename?: string;
+    device: AppleDevice | string;
+}
+/**
+ * Creates a recorder item for an Apple device screen recording, using the provided deviceID. Output is stored in a RecordKit bundle.
+ *
+ * @group Recording Schemas
+ */
+export interface AppleDeviceSchema {
+    type: 'appleDevice';
     filename?: string;
     device: AppleDevice | string;
 }
