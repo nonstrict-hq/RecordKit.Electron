@@ -343,6 +343,11 @@ class Recorder extends events.EventEmitter {
                     item.device = item.device.id;
                 }
             }
+            if (item.type == 'appleDevice') {
+                if (typeof item.device != 'string') {
+                    item.device = item.device.id;
+                }
+            }
             if (item.type == 'systemAudio') {
                 if (item.output == 'segmented' && item.segmentCallback) {
                     const segmentHandler = item.segmentCallback;

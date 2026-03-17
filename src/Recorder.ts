@@ -117,6 +117,11 @@ export class Recorder extends EventEmitter {
           item.device = item.device.id
         }
       }
+      if (item.type == 'appleDevice') {
+        if (typeof item.device != 'string') {
+          item.device = item.device.id
+        }
+      }
       if (item.type == 'systemAudio') {
         if (item.output == 'segmented' && item.segmentCallback) {
           const segmentHandler = item.segmentCallback;
@@ -240,6 +245,7 @@ export type RecorderSchemaItem =
   | DisplaySchema
   | WindowBasedCropSchema
   | AppleDeviceStaticOrientationSchema
+  | AppleDeviceSchema
   | SystemAudioSchema
   | ApplicationAudioSchema
   | MicrophoneSchema
@@ -342,11 +348,23 @@ export type WindowBasedCropSchema = {
 
 /**
  * Creates a recorder item for an Apple device screen recording, using the provided deviceID. Output is stored in a RecordKit bundle.
- * 
+ *
+ * @deprecated Use {@link AppleDeviceSchema} instead.
  * @group Recording Schemas
  */
 export interface AppleDeviceStaticOrientationSchema {
   type: 'appleDeviceStaticOrientation'
+  filename?: string
+  device: AppleDevice | string
+}
+
+/**
+ * Creates a recorder item for an Apple device screen recording, using the provided deviceID. Output is stored in a RecordKit bundle.
+ *
+ * @group Recording Schemas
+ */
+export interface AppleDeviceSchema {
+  type: 'appleDevice'
   filename?: string
   device: AppleDevice | string
 }
