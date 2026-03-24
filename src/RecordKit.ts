@@ -1,5 +1,6 @@
 import { IpcRecordKit } from "./IpcRecordKit.js";
 import { Recorder, RecorderSchemaItem } from "./Recorder.js";
+import type { SystemAudioBackend } from "./Recorder.js";
 import { EventEmitter } from "events";
 import { existsSync } from "node:fs";
 
@@ -186,8 +187,14 @@ export class RecordKit extends EventEmitter {
    *
    * @group Permissions
    */
-  async getSystemAudioRecordingAccess(): Promise<boolean> {
-    return await this.ipcRecordKit.nsrpc.perform({ type: 'AuthorizationStatus', action: 'getSystemAudioRecordingAccess' }) as boolean
+  async getSystemAudioRecordingAccess(options?: { backend?: SystemAudioPermissionBackend }): Promise<boolean> {
+    return await this.ipcRecordKit.nsrpc.perform({
+      type: 'AuthorizationStatus',
+      action: 'getSystemAudioRecordingAccess',
+      params: {
+        backend: options?.backend ?? 'default'
+      }
+    }) as boolean
   }
 
   /**
@@ -235,9 +242,6 @@ export class RecordKit extends EventEmitter {
   /**
    * Requests the user's permission to allow the app to capture the screen.
    *
-   * If this is the first time requesting access, this shows dialog that lets th users open System Settings.
-   * In System Settings, the user can allow the app permission to do screen recording.
-   *
    * Afterwards, the users needs to restart this app, for the permission to become active in the app.
    *
    * @group Permissions
@@ -249,18 +253,24 @@ export class RecordKit extends EventEmitter {
   /**
    * Requests the user's permission to allow the app to capture system audio.
    *
-   * If this is the first time requesting access, this shows dialog that lets th users open System Settings.
-   * In System Settings, the user can allow the app permission to do screen recording.
+   * Permission path depends on the selected backend:
+   * - `default` and `coreAudio`: system audio capture permission
+   * - `screenCaptureKit`: Screen Recording permission
+   * - `_beta_coreAudio`: deprecated alias for `coreAudio`
    *
    * Afterwards, the users needs to restart this app, for the permission to become active in the app.
    *
-   * @remarks Currently, system audio recording is currently implemented using ScreenCaptureKit,
-   * which means the users needs to grant screen recording access.
-   *
+   * @returns Boolean value that indicates whether the user granted or denied access to your app.
    * @group Permissions
    */
-  async requestSystemAudioRecordingAccess(): Promise<void> {
-    return await this.ipcRecordKit.nsrpc.perform({ type: 'AuthorizationStatus', action: 'requestSystemAudioRecordingAccess' }) as void
+  async requestSystemAudioRecordingAccess(options?: { backend?: SystemAudioPermissionBackend }): Promise<boolean> {
+    return await this.ipcRecordKit.nsrpc.perform({
+      type: 'AuthorizationStatus',
+      action: 'requestSystemAudioRecordingAccess',
+      params: {
+        backend: options?.backend ?? 'default'
+      }
+    }) as boolean
   }
 
   /**
@@ -322,6 +332,13 @@ export type AuthorizationStatus =
   | 'restricted' // The user cannot change the client's status, possibly due to active restrictions such as parental controls being in place.
   | 'denied' // The user explicitly denied access to the hardware supporting a media type for the client.
   | 'authorized' // Application is authorized to access the hardware.
+
+/**
+ * Backend selector used for backend-aware system audio permission checks and requests.
+ *
+ * @group Permissions
+ */
+export type SystemAudioPermissionBackend = 'default' | SystemAudioBackend
 
 /**
  * An external iOS device that can be used for screen recording.

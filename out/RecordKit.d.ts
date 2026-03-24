@@ -1,5 +1,6 @@
 /// <reference types="node" resolution-mode="require"/>
 import { Recorder, RecorderSchemaItem } from "./Recorder.js";
+import type { SystemAudioBackend } from "./Recorder.js";
 import { EventEmitter } from "events";
 /**
  * Entry point for the RecordKit SDK, an instance is available as `recordkit` that can be imported from the module. Do not instantiate this class directly.
@@ -127,7 +128,9 @@ export declare class RecordKit extends EventEmitter {
      *
      * @group Permissions
      */
-    getSystemAudioRecordingAccess(): Promise<boolean>;
+    getSystemAudioRecordingAccess(options?: {
+        backend?: SystemAudioPermissionBackend;
+    }): Promise<boolean>;
     /**
      * Indicates if keystroke events of other apps can be recorded via Input Monitoring.
      *
@@ -161,9 +164,6 @@ export declare class RecordKit extends EventEmitter {
     /**
      * Requests the user's permission to allow the app to capture the screen.
      *
-     * If this is the first time requesting access, this shows dialog that lets th users open System Settings.
-     * In System Settings, the user can allow the app permission to do screen recording.
-     *
      * Afterwards, the users needs to restart this app, for the permission to become active in the app.
      *
      * @group Permissions
@@ -172,17 +172,19 @@ export declare class RecordKit extends EventEmitter {
     /**
      * Requests the user's permission to allow the app to capture system audio.
      *
-     * If this is the first time requesting access, this shows dialog that lets th users open System Settings.
-     * In System Settings, the user can allow the app permission to do screen recording.
+     * Permission path depends on the selected backend:
+     * - `default` and `coreAudio`: system audio capture permission
+     * - `screenCaptureKit`: Screen Recording permission
+     * - `_beta_coreAudio`: deprecated alias for `coreAudio`
      *
      * Afterwards, the users needs to restart this app, for the permission to become active in the app.
      *
-     * @remarks Currently, system audio recording is currently implemented using ScreenCaptureKit,
-     * which means the users needs to grant screen recording access.
-     *
+     * @returns Boolean value that indicates whether the user granted or denied access to your app.
      * @group Permissions
      */
-    requestSystemAudioRecordingAccess(): Promise<void>;
+    requestSystemAudioRecordingAccess(options?: {
+        backend?: SystemAudioPermissionBackend;
+    }): Promise<boolean>;
     /**
      * Requests the users's permission to monitor keystrokes of other apps via Input Monitoring.
      *
@@ -227,6 +229,12 @@ export declare let recordkit: RecordKit;
  * - `authorized` Application is authorized to access the hardware.
  */
 export type AuthorizationStatus = 'notDetermined' | 'restricted' | 'denied' | 'authorized';
+/**
+ * Backend selector used for backend-aware system audio permission checks and requests.
+ *
+ * @group Permissions
+ */
+export type SystemAudioPermissionBackend = 'default' | SystemAudioBackend;
 /**
  * An external iOS device that can be used for screen recording.
  *
