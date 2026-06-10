@@ -106,3 +106,59 @@ export function createWebAudioBuffer(
     return null;
   }
 }
+
+/**
+ * An audio level measurement, as returned by {@link computeAudioLevel}.
+ *
+ * @group Recording
+ */
+export interface AudioLevel {
+  /** Root-mean-square (average) amplitude across all channels. Usually in `[0, 1]`, but can exceed `1` for hot or clipped signals. */
+  rms: number
+  /** Peak absolute amplitude across all channels. Usually in `[0, 1]`, but can exceed `1` for hot or clipped signals. */
+  peak: number
+  /** {@link AudioLevel.rms} in decibels relative to full scale (0 dBFS). `-Infinity` for silence; can exceed `0` for clipped signals. */
+  rmsDb: number
+  /** {@link AudioLevel.peak} in decibels relative to full scale (0 dBFS). `-Infinity` for silence; can exceed `0` for clipped signals. */
+  peakDb: number
+}
+
+/**
+ * Computes RMS and peak audio levels from an {@link AudioStreamBuffer}, for rendering a microphone (or
+ * system-audio) level meter.
+ *
+ * Electron has no dedicated microphone-preview component; the supported way to render a live level meter
+ * is to use a microphone/system-audio `stream` output and call this helper in your `streamCallback`.
+ *
+ * @example
+ * ```typescript
+ * import { computeAudioLevel } from '@nonstrict/recordkit';
+ *
+ * const streamCallback = (audioBuffer) => {
+ *   const { peakDb } = computeAudioLevel(audioBuffer);
+ *   meterElement.style.height = `${Math.max(0, 100 + peakDb)}%`; // -100 dB..0 dB -> 0%..100%
+ * };
+ * ```
+ *
+ * @group Recording
+ */
+export function computeAudioLevel(audioStreamBuffer: AudioStreamBuffer): AudioLevel {
+  let sumSquares = 0
+  let peak = 0
+  let count = 0
+
+  for (const channel of audioStreamBuffer.channelData) {
+    for (let i = 0; i < channel.length; i++) {
+      const sample = channel[i]
+      sumSquares += sample * sample
+      const abs = Math.abs(sample)
+      if (abs > peak) peak = abs
+      count++
+    }
+  }
+
+  const rms = count > 0 ? Math.sqrt(sumSquares / count) : 0
+  const toDb = (value: number) => value > 0 ? 20 * Math.log10(value) : -Infinity
+
+  return { rms, peak, rmsDb: toDb(rms), peakDb: toDb(peak) }
+}

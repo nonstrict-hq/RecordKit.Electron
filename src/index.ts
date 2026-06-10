@@ -1,3 +1,11 @@
 export type * from './RecordKit.js';
 export type * from './Recorder.js';
+export type * from './InputEvents.js';
+export type * from './RecordingMetadata.js';
+export type * from './Errors.js';
+export type * from './WindowLevels.js';
+export type * from './WebAudioUtils.js';
 export { recordkit } from './RecordKit.js';
+export { RECORDKIT_ERROR_CODE_NUMBERS } from './Errors.js';
+export { WINDOW_LEVELS } from './WindowLevels.js';
+export { computeAudioLevel, createWebAudioBuffer } from './WebAudioUtils.js';

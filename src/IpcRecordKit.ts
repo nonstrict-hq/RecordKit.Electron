@@ -22,6 +22,17 @@ export class IpcRecordKit {
       childProcess.on('spawn', () => { resolve(childProcess) })
     })
 
+    this.childProcess.on('close', (code, signal) => {
+      // No response can arrive anymore; fail all in-flight and future requests instead of letting
+      // them hang forever.
+      this.nsrpc.terminate(new Error(`RecordKit: [RPC] Process is gone (closed with code ${code} and signal ${signal}).`));
+    })
+    this.childProcess.stdin?.on('error', (error) => {
+      // Without an error listener, a failed write to a dead process would crash Node with an
+      // unhandled 'error' event. The 'close' handler above already fails all requests.
+      console.error(`RecordKit: [RPC] !! Failed to write to RPC process: ${error}`)
+    })
+
     const { stdout, stderr } = this.childProcess
     if (!stdout) { throw new Error('RecordKit: [RPC] !! No stdout stream on child process.') }
 
@@ -39,6 +50,7 @@ export class IpcRecordKit {
   private write(message: String) {
     const stdin = this.childProcess?.stdin;
     if (!stdin) { throw new Error('RecordKit: [RPC] !! Missing stdin stream.') }
+    if (stdin.destroyed) { throw new Error('RecordKit: [RPC] !! Process is gone, cannot write to its stdin.') }
     stdin.write(message + "\n")
   }
 }

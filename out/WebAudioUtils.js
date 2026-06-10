@@ -92,4 +92,41 @@ export function createWebAudioBuffer(audioStreamBuffer, audioContext) {
         return null;
     }
 }
+/**
+ * Computes RMS and peak audio levels from an {@link AudioStreamBuffer}, for rendering a microphone (or
+ * system-audio) level meter.
+ *
+ * Electron has no dedicated microphone-preview component; the supported way to render a live level meter
+ * is to use a microphone/system-audio `stream` output and call this helper in your `streamCallback`.
+ *
+ * @example
+ * ```typescript
+ * import { computeAudioLevel } from '@nonstrict/recordkit';
+ *
+ * const streamCallback = (audioBuffer) => {
+ *   const { peakDb } = computeAudioLevel(audioBuffer);
+ *   meterElement.style.height = `${Math.max(0, 100 + peakDb)}%`; // -100 dB..0 dB -> 0%..100%
+ * };
+ * ```
+ *
+ * @group Recording
+ */
+export function computeAudioLevel(audioStreamBuffer) {
+    let sumSquares = 0;
+    let peak = 0;
+    let count = 0;
+    for (const channel of audioStreamBuffer.channelData) {
+        for (let i = 0; i < channel.length; i++) {
+            const sample = channel[i];
+            sumSquares += sample * sample;
+            const abs = Math.abs(sample);
+            if (abs > peak)
+                peak = abs;
+            count++;
+        }
+    }
+    const rms = count > 0 ? Math.sqrt(sumSquares / count) : 0;
+    const toDb = (value) => value > 0 ? 20 * Math.log10(value) : -Infinity;
+    return { rms, peak, rmsDb: toDb(rms), peakDb: toDb(peak) };
+}
 //# sourceMappingURL=WebAudioUtils.js.map

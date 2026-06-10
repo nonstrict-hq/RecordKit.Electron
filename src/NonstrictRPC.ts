@@ -116,9 +116,26 @@ export class NSRPC {
 
   private responseHandlers: Map<string, PromiseSource> = new Map();
   private closureTargets: Map<string, ClosureTarget> = new Map();
+  private terminationError?: Error;
 
   constructor(send: (data: string) => void) {
     this.send = send;
+  }
+
+  /**
+   * Marks the RPC connection as permanently gone, e.g. because the external process exited.
+   *
+   * All in-flight requests are rejected with the given error and any future request fails
+   * immediately with the same error, instead of waiting forever for a response that can no
+   * longer arrive.
+   */
+  terminate(error: Error) {
+    this.terminationError = error;
+    const pendingHandlers = [...this.responseHandlers.values()];
+    this.responseHandlers.clear();
+    for (const handler of pendingHandlers) {
+      handler.reject(error);
+    }
   }
 
   receive(data: string) {
@@ -181,6 +198,9 @@ export class NSRPC {
   private async sendRequest(
     request: NSRPCRequestBody
   ): Promise<unknown> {
+    if (this.terminationError !== undefined) {
+      throw this.terminationError;
+    }
     const id = "req_" + randomUUID();
     const response = new Promise((resolve, reject) => {
       this.responseHandlers.set(id, { resolve, reject });
@@ -273,16 +293,20 @@ export class NSRPC {
     params?: Record<string, unknown>;
     lifecycle: Object;
   }) {
-    const target = args.target
-    finalizationRegistry.register(args.lifecycle, async () => {
-      await this.release(target);
-    });
-
     await this.sendRequest({
       target: args.target,
       type: args.type,
       params: args.params,
       procedure: "init",
+    });
+
+    // Register the GC release only after a successful init; registering earlier would later send a
+    // release for a target the external process never knew about.
+    const target = args.target
+    finalizationRegistry.register(args.lifecycle, () => {
+      // Swallow rejections: the external process may already be gone, in which case there is
+      // nothing left to release.
+      this.release(target).catch(() => { });
     });
   }
 

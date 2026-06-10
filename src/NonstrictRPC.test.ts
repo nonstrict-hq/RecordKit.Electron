@@ -7,7 +7,30 @@ import v8 from 'v8';
 // eval('%CollectGarbage(true)');
 
 describe('NonstrictRPC', () => {
-    it('needs tests', () => { });
+    describe('terminate', () => {
+        it('rejects all in-flight requests', async () => {
+            const rpc = new NSRPC(() => { });
+            const pending = rpc.perform({ type: 'Recorder', action: 'getDisplays' });
+            rpc.terminate(new Error('RPC process is gone'));
+            await expect(pending).rejects.toThrow('RPC process is gone');
+        });
+
+        it('fails future requests immediately instead of letting them hang', async () => {
+            const rpc = new NSRPC(() => { });
+            rpc.terminate(new Error('RPC process is gone'));
+            await expect(rpc.perform({ type: 'Recorder', action: 'getDisplays' })).rejects.toThrow('RPC process is gone');
+        });
+
+        it('does not affect requests that already completed', async () => {
+            const sent: string[] = [];
+            const rpc = new NSRPC((data) => sent.push(data));
+            const pending = rpc.perform({ type: 'Recorder', action: 'getDisplays' });
+            const request = JSON.parse(sent[0]);
+            rpc.receive(JSON.stringify({ nsrpc: 1, id: request.id, status: 200, result: ['display'] }));
+            await expect(pending).resolves.toEqual(['display']);
+            rpc.terminate(new Error('RPC process is gone'));
+        });
+    });
 
 //     beforeAll(() => {
 //         v8.setFlagsFromString('--allow-natives-syntax');
