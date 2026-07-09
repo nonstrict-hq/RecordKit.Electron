@@ -29,7 +29,8 @@
  *   `appleDeviceUnavailable`, `inputRecordingUnavailable`.
  * - **Recording state** (`-130x`): `noVideoFramesReceived` /
  *   `noAudioSamplesReceived` (nothing was captured), `screenCaptureStoppedLowDiskSpace`,
- *   `screenCaptureStoppedWithError`, `screenCaptureStoppedWithoutError`.
+ *   `screenCaptureStoppedWithError`, `screenCaptureStoppedWithoutError`,
+ *   `insufficientDiskSpace` (not enough free disk space to start or continue the recording).
  * - **Internal** (`-16xx`): unexpected failures inside RecordKit (e.g.
  *   `internalError`, `uncaughtError`, `internalConductorError`,
  *   `configurationFailed`, `configurationNotSupported`, audio/video/media
@@ -65,6 +66,7 @@ export type RecordKitErrorCode =
   | 'screenCaptureStoppedLowDiskSpace' //     -1303
   | 'screenCaptureStoppedWithError' //        -1304
   | 'screenCaptureStoppedWithoutError' //     -1305
+  | 'insufficientDiskSpace' //                -1306
   // Internal Errors
   | 'internalError' //                        -1600
   | 'uncaughtError' //                        -1601
@@ -121,6 +123,7 @@ export const RECORDKIT_ERROR_CODE_NUMBERS = {
   screenCaptureStoppedLowDiskSpace: -1303,
   screenCaptureStoppedWithError: -1304,
   screenCaptureStoppedWithoutError: -1305,
+  insufficientDiskSpace: -1306,
   // Internal Errors
   internalError: -1600,
   uncaughtError: -1601,

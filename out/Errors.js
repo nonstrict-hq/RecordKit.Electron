@@ -34,6 +34,7 @@ export const RECORDKIT_ERROR_CODE_NUMBERS = {
     screenCaptureStoppedLowDiskSpace: -1303,
     screenCaptureStoppedWithError: -1304,
     screenCaptureStoppedWithoutError: -1305,
+    insufficientDiskSpace: -1306,
     // Internal Errors
     internalError: -1600,
     uncaughtError: -1601,

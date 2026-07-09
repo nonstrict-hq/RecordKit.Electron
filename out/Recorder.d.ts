@@ -110,6 +110,30 @@ export interface RecorderSettings {
      * encoder uses its default keyframe-placement heuristic.
      */
     keyframeIntervalDuration?: number;
+    /**
+     * Minimum free disk space, in bytes, that must remain available on the recording volume.
+     * Defaults to `104857600` (100 MB).
+     *
+     * While recording, RecordKit periodically checks the actual available capacity of the volume the
+     * recording is written to (purgeable/opportunistic space is not counted). Shortly after the
+     * available capacity drops below this watermark the recording is aborted with an
+     * `insufficientDiskSpace` error. Keep the watermark high enough to absorb whatever is still written
+     * between two checks and to leave room to finalize the recording.
+     * Set to `0` to disable runtime disk space monitoring (record until the disk is full); disabling
+     * it may result in corrupt recordings.
+     */
+    minimumFreeDiskSpace?: number;
+    /**
+     * Minimum free disk space, in bytes, required before a recording can be prepared. Checked once
+     * during `prepare()`. Defaults to `157286400` (150 MB).
+     *
+     * When the available capacity is below this value, `prepare()` fails with an `insufficientDiskSpace`
+     * error so a doomed recording never begins. This watermark is independent of `minimumFreeDiskSpace`
+     * — set it higher to require headroom up front. Set to `0` to disable the prepare-time check while
+     * keeping runtime monitoring active (start on a near-full disk, but still abort if it gets
+     * critically low).
+     */
+    minimumFreeDiskSpaceToPrepareRecording?: number;
 }
 /**
  * @group Recording
