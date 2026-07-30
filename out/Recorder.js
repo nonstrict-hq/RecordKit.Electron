@@ -214,10 +214,15 @@ export class Recorder extends EventEmitter {
             prefix: 'Recorder.onAbort',
             lifecycle: object
         });
+        const onSignalsChangedInstance = rpc.registerClosure({
+            handler: (params) => { weakRefObject.deref()?.emit('signals', params.signals); },
+            prefix: 'Recorder.onSignalsChanged',
+            lifecycle: object
+        });
         await rpc.initialize({
             target,
             type: 'Recorder',
-            params: { schema, onAbortInstance },
+            params: { schema, onAbortInstance, onSignalsChangedInstance },
             lifecycle: object
         });
         return object;

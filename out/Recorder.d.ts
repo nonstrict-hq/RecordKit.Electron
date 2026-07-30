@@ -75,6 +75,18 @@ export interface Recorder {
     off(event: 'abort', listener: (reason: AbortReason) => void): this;
     /** @see {@link Recorder.on} */
     emit(event: 'abort', reason: AbortReason): boolean;
+    /**
+     * Fires whenever the set of active {@link Signal}s changes, with all signals active at that
+     * moment. An empty array means everything is healthy again. Events are asynchronous, so one can
+     * still arrive just after {@link Recorder.stop} resolved; the last one is always an empty array.
+     */
+    on(event: 'signals', listener: (signals: Signal[]) => void): this;
+    /** @see {@link Recorder.on} */
+    once(event: 'signals', listener: (signals: Signal[]) => void): this;
+    /** @see {@link Recorder.on} */
+    off(event: 'signals', listener: (signals: Signal[]) => void): this;
+    /** @see {@link Recorder.on} */
+    emit(event: 'signals', signals: Signal[]): boolean;
 }
 /**
  * Settings that apply to the whole recording session.
@@ -111,29 +123,36 @@ export interface RecorderSettings {
      */
     keyframeIntervalDuration?: number;
     /**
-     * Minimum free disk space, in bytes, that must remain available on the recording volume.
+     * Free disk space, in bytes, below which a running recording is aborted.
      * Defaults to `104857600` (100 MB).
      *
      * While recording, RecordKit periodically checks the actual available capacity of the volume the
      * recording is written to (purgeable/opportunistic space is not counted). Shortly after the
-     * available capacity drops below this watermark the recording is aborted with an
-     * `insufficientDiskSpace` error. Keep the watermark high enough to absorb whatever is still written
-     * between two checks and to leave room to finalize the recording.
-     * Set to `0` to disable runtime disk space monitoring (record until the disk is full); disabling
-     * it may result in corrupt recordings.
-     */
-    minimumFreeDiskSpace?: number;
-    /**
-     * Minimum free disk space, in bytes, required before a recording can be prepared. Checked once
-     * during `prepare()`. Defaults to `157286400` (150 MB).
+     * available capacity drops below this level the recording is aborted with an
+     * `insufficientDiskSpace` error. Keep it high enough to absorb whatever is still written between
+     * two checks and to leave room to finalize the recording.
+     * Set to `0` to never abort on disk space (record until the disk is full), which may result in a
+     * corrupt recording. A `diskSpaceWarningLevel` keeps being reported either way.
      *
-     * When the available capacity is below this value, `prepare()` fails with an `insufficientDiskSpace`
-     * error so a doomed recording never begins. This watermark is independent of `minimumFreeDiskSpace`
-     * — set it higher to require headroom up front. Set to `0` to disable the prepare-time check while
-     * keeping runtime monitoring active (start on a near-full disk, but still abort if it gets
-     * critically low).
+     * @see {@link RecorderSettings.diskSpaceWarningLevel}, the higher level that warns instead of
+     * aborting.
      */
-    minimumFreeDiskSpaceToPrepareRecording?: number;
+    diskSpaceAbortLevel?: number;
+    /**
+     * Free disk space, in bytes, below which the recording volume counts as running low.
+     * Defaults to `157286400` (150 MB).
+     *
+     * Checked once during `prepare()`, which fails with an `insufficientDiskSpace` error when the
+     * volume is already below it, and then periodically while recording. Dropping below it during a
+     * recording does not interrupt anything, it raises a `lowDiskSpace` {@link Signal} on the
+     * `signals` event so your app can warn the user; the signal clears again once enough space is
+     * freed up.
+     *
+     * Set this higher than `diskSpaceAbortLevel` so there is room to warn before the recording is
+     * aborted at that lower level. Set to `0` to disable both the prepare-time check and the
+     * signal.
+     */
+    diskSpaceWarningLevel?: number;
 }
 /**
  * @group Recording
@@ -604,6 +623,33 @@ export interface AudioStreamBuffer {
     /** Non-interleaved Float32 audio data - one array per channel */
     channelData: Float32Array[];
 }
+/**
+ * A condition detected during a recording that might need the user's attention.
+ *
+ * Unlike an {@link AbortReason} a signal never ends the recording, it reports something being off
+ * while recording continues, so your app can warn the user and let them fix it. A signal stays in
+ * the list emitted on the `signals` event for as long as the condition holds.
+ *
+ * @group Recording
+ */
+export interface Signal {
+    /** The kind of condition that was detected. */
+    kind: SignalKind;
+}
+/**
+ * The kind of condition a {@link Signal} reports.
+ *
+ * @group Recording
+ */
+export type SignalKind = 
+/**
+ * Free space on the recording volume dropped below
+ * {@link RecorderSettings.diskSpaceWarningLevel}. The recording continues, but keeps eating into
+ * the space that is left; below {@link RecorderSettings.diskSpaceAbortLevel} it is aborted with
+ * an `insufficientDiskSpace` error instead. A paused recording is never aborted, since nothing is
+ * being written; it is reported on and aborts after resuming.
+ */
+'lowDiskSpace';
 /**
  * @group Recording
  */
