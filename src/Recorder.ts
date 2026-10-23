@@ -412,6 +412,16 @@ export interface RecorderSettings {
    * signal.
    */
   diskSpaceWarningLevel?: number
+  /**
+   * How long, in seconds, a microphone or system audio item has to deliver no audio while
+   * recording before a `noAudio` {@link Signal} is raised for it. Defaults to `10`.
+   *
+   * No audio means only digital silence, or no audio at all. Only recording time counts, so time
+   * before the recording starts and while it is paused doesn't, and neither does time a microphone
+   * is muted or disconnected. The signal clears as soon as audio arrives again.
+   * Set to `0` to never raise the signal.
+   */
+  noAudioDuration?: number
 }
 
 /**
@@ -946,10 +956,8 @@ export interface AudioStreamBuffer {
 export interface Signal {
   /** The kind of condition that was detected. */
   kind: SignalKind
-  // The only signal reported today concerns the recording as a whole, so no source is ever sent.
-  // The audio signals are what will populate this, along with the SignalSource type below:
-  //   /** What the signal is about, omitted when it concerns the recording as a whole. */
-  //   source?: SignalSource
+  /** What the signal is about, omitted when it concerns the recording as a whole. */
+  source?: SignalSource
 }
 
 /**
@@ -958,9 +966,32 @@ export interface Signal {
  * @group Recording
  */
 export type SignalKind =
-  // Waiting on the audio signals, kept here so the shape is settled:
-  //   /** The recorded audio is silent, or so quiet it is very likely unusable. */
-  //   | 'audioSilence'
+  /**
+   * The microphone in {@link Signal.source} is muted, so no microphone audio is recorded.
+   *
+   * Raised as soon as macOS reports the microphone's input as muted, or its input volume as zero,
+   * and cleared when that changes. This might be what the user intended. Also reported while the
+   * recording is paused.
+   */
+  | 'muted'
+  /**
+   * The microphone in {@link Signal.source} is disconnected, so it delivers no audio at all.
+   *
+   * Raised as soon as the microphone is no longer available, for example because it was unplugged
+   * or because the lid of the MacBook with the built-in microphone was closed. Cleared as soon as
+   * it is available again. Also reported while the recording is paused.
+   */
+  | 'disconnected'
+  /**
+   * The source delivered no audio for {@link RecorderSettings.noAudioDuration} of recording: only
+   * digital silence, or no audio at all.
+   *
+   * Cleared as soon as audio arrives again; {@link Signal.source} names what delivers no audio. For
+   * a microphone that is neither muted nor disconnected this means something is wrong and it might
+   * not recover by itself. System and application audio deliver no audio whenever nothing is
+   * playing, so whether that needs the user's attention depends on what your app records.
+   */
+  | 'noAudio'
   /**
    * Free space on the recording volume dropped below
    * {@link RecorderSettings.diskSpaceWarningLevel}. The recording continues, but keeps eating into
@@ -970,10 +1001,19 @@ export type SignalKind =
    */
   | 'lowDiskSpace'
 
-// The part of the recording a Signal originated from. No cases yet, and TypeScript has no empty
-// union, so it stays commented out until the audio signals land:
-//   export type SignalSource =
-//     | { type: 'microphone'; id: string; }
+/**
+ * The part of the recording a {@link Signal} originated from.
+ *
+ * - `microphone`: the microphone with the given `id`.
+ * - `systemAudio`: the system or application audio recorded by the schema item at `itemIndex` in
+ *   the `items` the recorder was created with, including the audio of a display or window
+ *   recording. With a single system audio item there is no need to look at the index.
+ *
+ * @group Recording
+ */
+export type SignalSource =
+  | { type: 'microphone'; id: string; }
+  | { type: 'systemAudio'; itemIndex: number; }
 
 /**
  * @group Recording
