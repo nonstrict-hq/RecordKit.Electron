@@ -62,6 +62,17 @@ function registerJSONOutputSegmentCallback(output, rpc, object, prefix) {
 export class Recorder extends EventEmitter {
     rpc;
     target;
+    /**
+     * Decides whether the recording continues. Called with all active {@link Signal}s every time
+     * that set changes, right after the `signals` event.
+     *
+     * Return `'continue'` or `'abort'`, or nothing to let RecordKit decide: by default it aborts when
+     * a recorded microphone is `disconnected` or on `insufficientDiskSpace`, and continues otherwise.
+     * An aborted recording emits `abort` with an `interrupted` reason. A handler that throws gets the
+     * default action. Return right away: to decide later, for example after asking the user, return
+     * `'continue'` and call `stop()` once decided.
+     */
+    onSignalsChanged;
     /** @ignore */
     static async newInstance(rpc, schema) {
         const target = 'Recorder_' + randomUUID();
@@ -215,7 +226,12 @@ export class Recorder extends EventEmitter {
             lifecycle: object
         });
         const onSignalsChangedInstance = rpc.registerClosure({
-            handler: (params) => { weakRefObject.deref()?.emit('signals', params.signals); },
+            handler: (params) => {
+                const signals = params.signals;
+                const recorder = weakRefObject.deref();
+                recorder?.emit('signals', signals);
+                return { action: recorder?.onSignalsChanged?.(signals) ?? null };
+            },
             prefix: 'Recorder.onSignalsChanged',
             lifecycle: object
         });

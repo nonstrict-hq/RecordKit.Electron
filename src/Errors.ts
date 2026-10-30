@@ -30,7 +30,8 @@
  * - **Recording state** (`-130x`): `noVideoFramesReceived` /
  *   `noAudioSamplesReceived` (nothing was captured), `screenCaptureStoppedLowDiskSpace`,
  *   `screenCaptureStoppedWithError`, `screenCaptureStoppedWithoutError`,
- *   `insufficientDiskSpace` (not enough free disk space to start or continue the recording).
+ *   `insufficientDiskSpace` (not enough free disk space to start or continue the recording),
+ *   `abortedOnSignal` (`onSignalsChanged` aborted on a signal that isn't an error itself).
  * - **Internal** (`-16xx`): unexpected failures inside RecordKit (e.g.
  *   `internalError`, `uncaughtError`, `internalConductorError`,
  *   `configurationFailed`, `configurationNotSupported`, audio/video/media
@@ -67,6 +68,7 @@ export type RecordKitErrorCode =
   | 'screenCaptureStoppedWithError' //        -1304
   | 'screenCaptureStoppedWithoutError' //     -1305
   | 'insufficientDiskSpace' //                -1306
+  | 'abortedOnSignal' //                      -1307
   // Internal Errors
   | 'internalError' //                        -1600
   | 'uncaughtError' //                        -1601
@@ -124,6 +126,7 @@ export const RECORDKIT_ERROR_CODE_NUMBERS = {
   screenCaptureStoppedWithError: -1304,
   screenCaptureStoppedWithoutError: -1305,
   insufficientDiskSpace: -1306,
+  abortedOnSignal: -1307,
   // Internal Errors
   internalError: -1600,
   uncaughtError: -1601,

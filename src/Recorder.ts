@@ -75,6 +75,18 @@ export class Recorder extends EventEmitter {
   private readonly rpc: NSRPC;
   private readonly target: string;
 
+  /**
+   * Decides whether the recording continues. Called with all active {@link Signal}s every time
+   * that set changes, right after the `signals` event.
+   *
+   * Return `'continue'` or `'abort'`, or nothing to let RecordKit decide: by default it aborts when
+   * a recorded microphone is `disconnected` or on `insufficientDiskSpace`, and continues otherwise.
+   * An aborted recording emits `abort` with an `interrupted` reason. A handler that throws gets the
+   * default action. Return right away: to decide later, for example after asking the user, return
+   * `'continue'` and call `stop()` once decided.
+   */
+  onSignalsChanged?: (signals: Signal[]) => SignalAction | void;
+
   /** @ignore */
   static async newInstance(rpc: NSRPC, schema: {
     output_directory?: string
@@ -234,7 +246,12 @@ export class Recorder extends EventEmitter {
       lifecycle: object
     });
     const onSignalsChangedInstance = rpc.registerClosure({
-      handler: (params) => { weakRefObject.deref()?.emit('signals', (params as { signals: Signal[] }).signals) },
+      handler: (params) => {
+        const signals = (params as { signals: Signal[] }).signals;
+        const recorder = weakRefObject.deref();
+        recorder?.emit('signals', signals);
+        return { action: recorder?.onSignalsChanged?.(signals) ?? null };
+      },
       prefix: 'Recorder.onSignalsChanged',
       lifecycle: object
     });
@@ -382,36 +399,34 @@ export interface RecorderSettings {
    */
   keyframeIntervalDuration?: number
   /**
-   * Free disk space, in bytes, below which a running recording is aborted.
-   * Defaults to `104857600` (100 MB).
+   * Free disk space, in bytes, below which a running recording raises an `insufficientDiskSpace`
+   * {@link Signal}. Defaults to `104857600` (100 MB).
    *
    * While recording, RecordKit periodically checks the actual available capacity of the volume the
    * recording is written to (purgeable/opportunistic space is not counted). Shortly after the
-   * available capacity drops below this level the recording is aborted with an
-   * `insufficientDiskSpace` error. Keep it high enough to absorb whatever is still written between
-   * two checks and to leave room to finalize the recording.
-   * Set to `0` to never abort on disk space (record until the disk is full), which may result in a
-   * corrupt recording. A `diskSpaceWarningLevel` keeps being reported either way.
+   * available capacity drops below this threshold the signal is raised, on which the recording is
+   * aborted with an `insufficientDiskSpace` error by default. Keep it high enough to absorb whatever
+   * is still written between two checks and to leave room to finalize the recording.
+   * Set to `0` to never raise the signal (record until the disk is full), which may result in a
+   * corrupt recording. A `lowDiskSpaceThreshold` keeps being reported either way.
    *
-   * @see {@link RecorderSettings.diskSpaceWarningLevel}, the higher level that warns instead of
-   * aborting.
+   * @see {@link RecorderSettings.lowDiskSpaceThreshold}, the higher threshold that warns.
    */
-  diskSpaceAbortLevel?: number
+  insufficientDiskSpaceThreshold?: number
   /**
-   * Free disk space, in bytes, below which the recording volume counts as running low.
+   * Free disk space, in bytes, below which a recording raises a `lowDiskSpace` {@link Signal}.
    * Defaults to `157286400` (150 MB).
    *
-   * Checked once during `prepare()`, which fails with an `insufficientDiskSpace` error when the
-   * volume is already below it, and then periodically while recording. Dropping below it during a
-   * recording does not interrupt anything, it raises a `lowDiskSpace` {@link Signal} on the
-   * `signals` event so your app can warn the user; the signal clears again once enough space is
-   * freed up.
+   * Checked periodically while recording. The signal by default doesn't interrupt anything, so your
+   * app can warn the user, and clears again once enough space is freed up. Also checked once during
+   * `prepare()`, which fails with an `insufficientDiskSpace` error when the volume is already below
+   * it: a recording isn't started when it would warn right away.
    *
-   * Set this higher than `diskSpaceAbortLevel` so there is room to warn before the recording is
-   * aborted at that lower level. Set to `0` to disable both the prepare-time check and the
-   * signal.
+   * Set this higher than `insufficientDiskSpaceThreshold` so there is room to warn before the
+   * recording is aborted at that lower threshold. Set to `0` to disable both the prepare-time check
+   * and the signal.
    */
-  diskSpaceWarningLevel?: number
+  lowDiskSpaceThreshold?: number
   /**
    * How long, in seconds, a microphone or system audio item has to deliver no audio while
    * recording before a `noAudio` {@link Signal} is raised for it. Defaults to `10`.
@@ -947,9 +962,9 @@ export interface AudioStreamBuffer {
 /**
  * A condition detected during a recording that might need the user's attention.
  *
- * Unlike an {@link AbortReason} a signal never ends the recording, it reports something being off
- * while recording continues, so your app can warn the user and let them fix it. A signal stays in
- * the list emitted on the `signals` event for as long as the condition holds.
+ * A signal reports something being off, {@link Recorder.onSignalsChanged} decides whether the
+ * recording continues so your app can warn the user and let them fix it, or is aborted. A signal
+ * stays in the list emitted on the `signals` event for as long as the condition holds.
  *
  * @group Recording
  */
@@ -971,7 +986,7 @@ export type SignalKind =
    *
    * Raised as soon as macOS reports the microphone's input as muted, or its input volume as zero,
    * and cleared when that changes. This might be what the user intended. Also reported while the
-   * recording is paused.
+   * recording is paused. By default the recording continues.
    */
   | 'muted'
   /**
@@ -980,6 +995,11 @@ export type SignalKind =
    * Raised as soon as the microphone is no longer available, for example because it was unplugged
    * or because the lid of the MacBook with the built-in microphone was closed. Cleared as soon as
    * it is available again. Also reported while the recording is paused.
+   *
+   * By default the recording is aborted with a `microphoneUnavailable` error. When it continues, the
+   * time the microphone is gone is recorded as silence, and a microphone that comes back with the
+   * same id is recorded again. The id of a USB microphone without a serial number includes the port
+   * it is plugged into, so plugged into another port it is a different microphone that isn't picked up.
    */
   | 'disconnected'
   /**
@@ -989,17 +1009,33 @@ export type SignalKind =
    * Cleared as soon as audio arrives again; {@link Signal.source} names what delivers no audio. For
    * a microphone that is neither muted nor disconnected this means something is wrong and it might
    * not recover by itself. System and application audio deliver no audio whenever nothing is
-   * playing, so whether that needs the user's attention depends on what your app records.
+   * playing, so whether that needs the user's attention depends on what your app records. By
+   * default the recording continues.
    */
   | 'noAudio'
   /**
    * Free space on the recording volume dropped below
-   * {@link RecorderSettings.diskSpaceWarningLevel}. The recording continues, but keeps eating into
-   * the space that is left; below {@link RecorderSettings.diskSpaceAbortLevel} it is aborted with
-   * an `insufficientDiskSpace` error instead. A paused recording is never aborted, since nothing is
-   * being written; it is reported on and aborts after resuming.
+   * {@link RecorderSettings.lowDiskSpaceThreshold}. By default the recording continues, but keeps
+   * eating into the space that is left. Reported whether or not the recording is paused.
    */
   | 'lowDiskSpace'
+  /**
+   * Free space on the recording volume dropped below {@link RecorderSettings.insufficientDiskSpaceThreshold},
+   * too little to keep recording safely.
+   *
+   * Only raised while recording, a paused recording writes nothing and gives the user a chance to
+   * free up space. Cleared as soon as there is enough space again. By default the recording is
+   * aborted with an `insufficientDiskSpace` error, when it continues the disk might run full and
+   * the recording might fail or be corrupted.
+   */
+  | 'insufficientDiskSpace'
+
+/**
+ * What {@link Recorder.onSignalsChanged} decides to do with the recording.
+ *
+ * @group Recording
+ */
+export type SignalAction = 'continue' | 'abort'
 
 /**
  * The part of the recording a {@link Signal} originated from.

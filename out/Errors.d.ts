@@ -24,7 +24,8 @@
  * - **Recording state** (`-130x`): `noVideoFramesReceived` /
  *   `noAudioSamplesReceived` (nothing was captured), `screenCaptureStoppedLowDiskSpace`,
  *   `screenCaptureStoppedWithError`, `screenCaptureStoppedWithoutError`,
- *   `insufficientDiskSpace` (not enough free disk space to start or continue the recording).
+ *   `insufficientDiskSpace` (not enough free disk space to start or continue the recording),
+ *   `abortedOnSignal` (`onSignalsChanged` aborted on a signal that isn't an error itself).
  * - **Internal** (`-16xx`): unexpected failures inside RecordKit (e.g.
  *   `internalError`, `uncaughtError`, `internalConductorError`,
  *   `configurationFailed`, `configurationNotSupported`, audio/video/media
@@ -37,7 +38,7 @@
  *
  * @group Recording
  */
-export type RecordKitErrorCode = 'invalidLicense' | 'invalidConfiguration' | 'microphonePermissionRequired' | 'cameraPermissionRequired' | 'screenRecordingPermissionRequired' | 'systemAudioPermissionRequired' | 'microphoneUnavailable' | 'cameraUnavailable' | 'displayUnavailable' | 'windowUnavailable' | 'systemAudioUnavailable' | 'appleDeviceUnavailable' | 'inputRecordingUnavailable' | 'noVideoFramesReceived' | 'noAudioSamplesReceived' | 'screenCaptureStoppedLowDiskSpace' | 'screenCaptureStoppedWithError' | 'screenCaptureStoppedWithoutError' | 'insufficientDiskSpace' | 'internalError' | 'uncaughtError' | 'internalConductorError' | 'configurationFailed' | 'configurationNotSupported' | 'audioFormatError' | 'videoFormatError' | 'audioFormatConfigurationFailed' | 'videoFormatConfigurationFailed' | 'mediaFormatInitializationFailed' | 'mediaFormatConfigurationFailed' | 'audioDeviceInitializationFailed' | 'audioDeviceConfigurationFailed' | 'assetWriterFailed' | 'tccUnavailableError' | 'audioProcessingFailed' | 'audioBufferProcessingFailed' | 'audioBufferCreationFailed' | 'inputEventProcessingFailed' | 'assetWriterCreationFailed' | 'fileOperationFailed' | 'windowOperationFailed';
+export type RecordKitErrorCode = 'invalidLicense' | 'invalidConfiguration' | 'microphonePermissionRequired' | 'cameraPermissionRequired' | 'screenRecordingPermissionRequired' | 'systemAudioPermissionRequired' | 'microphoneUnavailable' | 'cameraUnavailable' | 'displayUnavailable' | 'windowUnavailable' | 'systemAudioUnavailable' | 'appleDeviceUnavailable' | 'inputRecordingUnavailable' | 'noVideoFramesReceived' | 'noAudioSamplesReceived' | 'screenCaptureStoppedLowDiskSpace' | 'screenCaptureStoppedWithError' | 'screenCaptureStoppedWithoutError' | 'insufficientDiskSpace' | 'abortedOnSignal' | 'internalError' | 'uncaughtError' | 'internalConductorError' | 'configurationFailed' | 'configurationNotSupported' | 'audioFormatError' | 'videoFormatError' | 'audioFormatConfigurationFailed' | 'videoFormatConfigurationFailed' | 'mediaFormatInitializationFailed' | 'mediaFormatConfigurationFailed' | 'audioDeviceInitializationFailed' | 'audioDeviceConfigurationFailed' | 'assetWriterFailed' | 'tccUnavailableError' | 'audioProcessingFailed' | 'audioBufferProcessingFailed' | 'audioBufferCreationFailed' | 'inputEventProcessingFailed' | 'assetWriterCreationFailed' | 'fileOperationFailed' | 'windowOperationFailed';
 /**
  * Mapping from each {@link RecordKitErrorCode} name to its numeric raw value.
  *
@@ -66,6 +67,7 @@ export declare const RECORDKIT_ERROR_CODE_NUMBERS: {
     readonly screenCaptureStoppedWithError: -1304;
     readonly screenCaptureStoppedWithoutError: -1305;
     readonly insufficientDiskSpace: -1306;
+    readonly abortedOnSignal: -1307;
     readonly internalError: -1600;
     readonly uncaughtError: -1601;
     readonly internalConductorError: -1602;
