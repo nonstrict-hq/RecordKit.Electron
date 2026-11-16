@@ -13,8 +13,8 @@ export declare class Recorder extends EventEmitter {
      * Decides whether the recording continues. Called with all active {@link Signal}s every time
      * that set changes, right after the `signals` event.
      *
-     * Return `'continue'` or `'abort'`, or nothing to let RecordKit decide: by default it aborts when
-     * a recorded microphone is `disconnected` or on `insufficientDiskSpace`, and continues otherwise.
+     * Return `'continue'` or `'abort'`, or nothing to let RecordKit decide: each {@link SignalKind}
+     * documents whether the recording continues or is aborted by default.
      * An aborted recording emits `abort` with an `interrupted` reason. A handler that throws gets the
      * default action. Return right away: to decide later, for example after asking the user, return
      * `'continue'` and call `stop()` once decided.
@@ -672,16 +672,22 @@ export type SignalKind =
  */
 'muted'
 /**
- * The microphone in {@link Signal.source} is disconnected, so it delivers no audio at all.
+ * The microphone or camera in {@link Signal.source} is disconnected, so it delivers no audio or
+ * video at all.
  *
  * Raised as soon as the microphone is no longer available, for example because it was unplugged
  * or because the lid of the MacBook with the built-in microphone was closed. Cleared as soon as
- * it is available again. Also reported while the recording is paused.
+ * it is available again. Also reported while the recording is paused. By default the recording is
+ * aborted with a `microphoneUnavailable` error. When it continues, the time the microphone is gone
+ * is recorded as silence, and a microphone that comes back with the same id is recorded again. The
+ * id of a USB microphone without a serial number includes the port it is plugged into, so plugged
+ * into another port it is a different microphone that isn't picked up.
  *
- * By default the recording is aborted with a `microphoneUnavailable` error. When it continues, the
- * time the microphone is gone is recorded as silence, and a microphone that comes back with the
- * same id is recorded again. The id of a USB microphone without a serial number includes the port
- * it is plugged into, so plugged into another port it is a different microphone that isn't picked up.
+ * For a camera it's raised as soon as the camera stops delivering video because it was unplugged,
+ * also while the recording is paused. The camera isn't picked up again during the recording, so
+ * the signal stays until the recording ends. By default the recording is aborted with a
+ * `cameraUnavailable` error. When it continues, the video shows the camera's last frame until the
+ * recording ends.
  */
  | 'disconnected'
 /**
@@ -695,6 +701,15 @@ export type SignalKind =
  * default the recording continues.
  */
  | 'noAudio'
+/**
+ * The camera in {@link Signal.source} stopped delivering video while it is still connected.
+ *
+ * Raised as soon as the camera's capture session reports that it failed, also while the recording
+ * is paused. A camera that stopped because it was unplugged is reported as `disconnected` instead.
+ * The camera isn't picked up again during the recording, so the signal stays until the recording
+ * ends, and the video shows the camera's last frame until then. By default the recording continues.
+ */
+ | 'noVideo'
 /**
  * Free space on the recording volume dropped below
  * {@link RecorderSettings.lowDiskSpaceThreshold}. By default the recording continues, but keeps
@@ -721,6 +736,7 @@ export type SignalAction = 'continue' | 'abort';
  * The part of the recording a {@link Signal} originated from.
  *
  * - `microphone`: the microphone with the given `id`.
+ * - `camera`: the camera with the given `id`.
  * - `systemAudio`: the system or application audio recorded by the schema item at `itemIndex` in
  *   the `items` the recorder was created with, including the audio of a display or window
  *   recording. With a single system audio item there is no need to look at the index.
@@ -729,6 +745,9 @@ export type SignalAction = 'continue' | 'abort';
  */
 export type SignalSource = {
     type: 'microphone';
+    id: string;
+} | {
+    type: 'camera';
     id: string;
 } | {
     type: 'systemAudio';

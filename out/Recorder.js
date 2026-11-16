@@ -66,8 +66,8 @@ export class Recorder extends EventEmitter {
      * Decides whether the recording continues. Called with all active {@link Signal}s every time
      * that set changes, right after the `signals` event.
      *
-     * Return `'continue'` or `'abort'`, or nothing to let RecordKit decide: by default it aborts when
-     * a recorded microphone is `disconnected` or on `insufficientDiskSpace`, and continues otherwise.
+     * Return `'continue'` or `'abort'`, or nothing to let RecordKit decide: each {@link SignalKind}
+     * documents whether the recording continues or is aborted by default.
      * An aborted recording emits `abort` with an `interrupted` reason. A handler that throws gets the
      * default action. Return right away: to decide later, for example after asking the user, return
      * `'continue'` and call `stop()` once decided.
