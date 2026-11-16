@@ -168,7 +168,8 @@ export interface RecorderSettings {
      *
      * No audio means only digital silence, or no audio at all. Only recording time counts, so time
      * before the recording starts and while it is paused doesn't, and neither does time a microphone
-     * is muted or disconnected. The signal clears as soon as audio arrives again.
+     * is muted or disconnected or a recorded application is closed. The signal clears as soon as audio
+     * arrives again.
      * Set to `0` to never raise the signal.
      */
     noAudioDuration?: number;
@@ -701,6 +702,18 @@ export type SignalKind =
  * default the recording continues.
  */
  | 'noAudio'
+/**
+ * An application recorded by the system or application audio item in {@link Signal.source} was
+ * quit, so it delivers no audio.
+ *
+ * Raised as soon as one of the item's included applications is no longer running, also while the
+ * recording is paused. Cleared as soon as an application with the same bundle identifier runs
+ * again, even before it plays audio. While it's raised `noAudio` isn't raised for the same source.
+ * With the Core Audio backend the reopened application is recorded again and the time it was
+ * closed is recorded as silence; the ScreenCaptureKit backend might not record it again. By
+ * default the recording continues.
+ */
+ | 'applicationClosed'
 /**
  * The camera in {@link Signal.source} stopped delivering video while it is still connected.
  *
