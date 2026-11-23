@@ -31,7 +31,9 @@
  *   `noAudioSamplesReceived` (nothing was captured), `screenCaptureStoppedLowDiskSpace`,
  *   `screenCaptureStoppedWithError`, `screenCaptureStoppedWithoutError`,
  *   `insufficientDiskSpace` (not enough free disk space to start or continue the recording),
- *   `abortedOnSignal` (`onSignalsChanged` aborted on a signal that isn't an error itself).
+ *   `abortedOnSignal` (`onSignalsChanged` aborted on a signal that isn't an error itself),
+ *   `outputDirectoryRemoved` (the recording's output directory was removed, moved or unmounted while
+ *   recording; to discard a recording, stop it before deleting its bundle).
  * - **Internal** (`-16xx`): unexpected failures inside RecordKit (e.g.
  *   `internalError`, `uncaughtError`, `internalConductorError`,
  *   `configurationFailed`, `configurationNotSupported`, audio/video/media
@@ -69,6 +71,7 @@ export type RecordKitErrorCode =
   | 'screenCaptureStoppedWithoutError' //     -1305
   | 'insufficientDiskSpace' //                -1306
   | 'abortedOnSignal' //                      -1307
+  | 'outputDirectoryRemoved' //               -1308
   // Internal Errors
   | 'internalError' //                        -1600
   | 'uncaughtError' //                        -1601
@@ -127,6 +130,7 @@ export const RECORDKIT_ERROR_CODE_NUMBERS = {
   screenCaptureStoppedWithoutError: -1305,
   insufficientDiskSpace: -1306,
   abortedOnSignal: -1307,
+  outputDirectoryRemoved: -1308,
   // Internal Errors
   internalError: -1600,
   uncaughtError: -1601,

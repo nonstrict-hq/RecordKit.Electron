@@ -1124,6 +1124,7 @@ const RECORDKIT_ERROR_CODE_NUMBERS = {
     screenCaptureStoppedWithoutError: -1305,
     insufficientDiskSpace: -1306,
     abortedOnSignal: -1307,
+    outputDirectoryRemoved: -1308,
     // Internal Errors
     internalError: -1600,
     uncaughtError: -1601,
