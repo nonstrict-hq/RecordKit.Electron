@@ -25,6 +25,7 @@ describe('RECORDKIT_ERROR_CODE_NUMBERS', () => {
     expect(RECORDKIT_ERROR_CODE_NUMBERS.noVideoFramesReceived).toBe(-1301);
     expect(RECORDKIT_ERROR_CODE_NUMBERS.internalError).toBe(-1600);
     expect(RECORDKIT_ERROR_CODE_NUMBERS.windowOperationFailed).toBe(-1707);
+    expect(RECORDKIT_ERROR_CODE_NUMBERS.recordingNotRecoverable).toBe(-1708);
   });
 
   it('keeps codes inside their documented category ranges', () => {
@@ -34,5 +35,6 @@ describe('RECORDKIT_ERROR_CODE_NUMBERS', () => {
     expect(inRange(RECORDKIT_ERROR_CODE_NUMBERS.appleDeviceUnavailable, -1201, -1300)).toBe(true);
     expect(inRange(RECORDKIT_ERROR_CODE_NUMBERS.assetWriterFailed, -1600, -1700)).toBe(true);
     expect(inRange(RECORDKIT_ERROR_CODE_NUMBERS.windowOperationFailed, -1701, -1800)).toBe(true);
+    expect(inRange(RECORDKIT_ERROR_CODE_NUMBERS.recordingNotRecoverable, -1701, -1800)).toBe(true);
   });
 });

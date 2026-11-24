@@ -438,6 +438,15 @@ export interface RecorderSettings {
    * Set to `0` to never raise the signal.
    */
   noAudioDuration?: number
+  /**
+   * Whether recordings are written so their files stay readable after a crash. Defaults to `true`.
+   *
+   * When enabled, media files are written in fragments of one second while recording, so a crash,
+   * force quit or kill loses about the last second. A recording that stops normally produces the
+   * same files, slightly larger. Set to `false` to write unfragmented files, which a crash leaves
+   * unreadable.
+   */
+  crashRecovery?: boolean
 }
 
 /**

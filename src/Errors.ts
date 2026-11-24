@@ -42,7 +42,8 @@
  * - **Processing/operation** (`-17xx`): a runtime operation failed — e.g.
  *   `audioProcessingFailed`, `audioBufferProcessingFailed`,
  *   `audioBufferCreationFailed`, `inputEventProcessingFailed`,
- *   `assetWriterCreationFailed`, `fileOperationFailed`, `windowOperationFailed`.
+ *   `assetWriterCreationFailed`, `fileOperationFailed`, `windowOperationFailed`,
+ *   `recordingNotRecoverable` (an interrupted recording can't be recovered or discarded right now).
  *
  * @group Recording
  */
@@ -95,7 +96,8 @@ export type RecordKitErrorCode =
   | 'inputEventProcessingFailed' //           -1704
   | 'assetWriterCreationFailed' //            -1705
   | 'fileOperationFailed' //                  -1706
-  | 'windowOperationFailed'; //               -1707
+  | 'windowOperationFailed' //                -1707
+  | 'recordingNotRecoverable'; //             -1708
 
 /**
  * Mapping from each {@link RecordKitErrorCode} name to its numeric raw value.
@@ -155,4 +157,5 @@ export const RECORDKIT_ERROR_CODE_NUMBERS = {
   assetWriterCreationFailed: -1705,
   fileOperationFailed: -1706,
   windowOperationFailed: -1707,
+  recordingNotRecoverable: -1708,
 } as const satisfies Record<RecordKitErrorCode, number>;

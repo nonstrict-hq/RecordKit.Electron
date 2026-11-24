@@ -61,5 +61,6 @@ export const RECORDKIT_ERROR_CODE_NUMBERS = {
     assetWriterCreationFailed: -1705,
     fileOperationFailed: -1706,
     windowOperationFailed: -1707,
+    recordingNotRecoverable: -1708,
 };
 //# sourceMappingURL=Errors.js.map
